@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>소개 — Fuse 숫자 합치기 퍼즐</title>
+<meta name="description" content="Fuse는 같은 숫자 타일을 밀어 합치는 무료 웹 퍼즐 게임입니다. 설치·회원가입 없이 브라우저에서 바로 즐기세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="logo" href="index.html">Fuse</a>
+      <div class="links">
+        <a class="play" href="index.html">게임하기</a>
+        <a href="how-to-play.html">게임 방법</a>
+        <a href="about.html">소개</a>
+        <a href="privacy.html">개인정보처리방침</a>
+      </div>
+    </nav>
+
+    <main>
+      <h1>Fuse 소개</h1>
+      <p class="lead">잠깐의 짬에 머리를 식히는 가장 단순한 숫자 퍼즐.</p>
+
+      <p><strong>Fuse</strong>는 같은 숫자 타일을 밀어 합쳐 더 큰 수를 만드는 웹 퍼즐 게임입니다. 규칙은 1분이면 배우지만, 한 판을 오래 이어가려면 판을 읽는 감각이 필요합니다. 그 단순함과 깊이 사이의 균형이 이 장르가 오래 사랑받는 이유입니다.</p>
+
+      <h2>이런 분께 어울립니다</h2>
+      <ul>
+        <li>출퇴근길이나 잠깐의 휴식에 가볍게 즐길 게임을 찾는 분</li>
+        <li>복잡한 조작 없이 머리만 쓰는 퍼즐을 좋아하는 분</li>
+        <li>설치나 회원가입 없이 바로 시작하고 싶은 분</li>
+      </ul>
+
+      <h2>특징</h2>
+      <ul>
+        <li><strong>무료</strong> — 브라우저에서 바로, 설치·가입 없이 즐깁니다.</li>
+        <li><strong>PC·모바일 모두 지원</strong> — 방향키, 키보드, 스와이프로 조작합니다.</li>
+        <li><strong>최고 점수 기록</strong> — 나만의 기록이 브라우저에 저장됩니다.</li>
+        <li><strong>한 수 되돌리기</strong> — 실수한 움직임을 바로 취소할 수 있습니다.</li>
+      </ul>
+
+      <div class="ad-slot"><!-- 애드센스 광고 코드를 여기에 붙여넣으세요 --></div>
+
+      <h2>문의</h2>
+      <p>게임에 대한 의견이나 문의는 <a href="mailto:illenne77@gmail.com">illenne77@gmail.com</a> 로 보내주세요. 개인정보 처리에 관한 내용은 <a href="privacy.html">개인정보처리방침</a>에서 확인하실 수 있습니다.</p>
+
+      <p style="margin-top:28px;"><a class="logo" href="index.html" style="font-size:18px;">→ 지금 플레이하기</a></p>
+    </main>
+
+    <footer class="site-footer">
+      <div class="fnav">
+        <a href="index.html">게임하기</a><span class="sep">·</span>
+        <a href="how-to-play.html">게임 방법</a><span class="sep">·</span>
+        <a href="about.html">소개</a><span class="sep">·</span>
+        <a href="privacy.html">개인정보처리방침</a>
+      </div>
+      <div>© <span id="y"></span> Fuse. 무료 숫자 퍼즐 게임.</div>
+    </footer>
+  </div>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>

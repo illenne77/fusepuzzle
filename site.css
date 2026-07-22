@@ -1,0 +1,73 @@
+/* Fuse — 콘텐츠 페이지 공용 스타일 (게임과 동일한 디자인 토큰) */
+:root{
+  --bg:#10141f;
+  --panel:#1b2130;
+  --ink:#e8ecf4;
+  --muted:#8b93a7;
+  --accent:#5b8cff;
+  --accent-2:#8b5cf6;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.14), transparent 60%),
+    radial-gradient(900px 500px at 90% 110%, rgba(139,92,246,.12), transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Outfit', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  min-height:100vh; min-height:100dvh;
+  line-height:1.7;
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{width:100%; max-width:720px; margin:0 auto; padding:22px 20px 48px;}
+
+/* 상단 네비게이션 */
+.nav{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:34px; flex-wrap:wrap;}
+.nav .logo{
+  font-size:28px; font-weight:800; letter-spacing:-1px; text-decoration:none; line-height:1;
+  background:linear-gradient(120deg, var(--accent), var(--accent-2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.nav .links{display:flex; gap:6px; flex-wrap:wrap;}
+.nav .links a{
+  color:var(--muted); text-decoration:none; font-size:14px; font-weight:500;
+  padding:7px 12px; border-radius:8px; transition:background .15s ease, color .15s ease;
+}
+.nav .links a:hover{background:var(--panel); color:var(--ink);}
+.nav .links a.play{color:#fff; background:linear-gradient(120deg, var(--accent), var(--accent-2));}
+.nav .links a.play:hover{filter:brightness(1.06);}
+
+/* 본문 */
+main h1{font-size:34px; font-weight:800; letter-spacing:-.6px; margin:0 0 8px;}
+main .lead{color:var(--muted); font-size:16px; margin:0 0 34px;}
+main h2{font-size:21px; font-weight:700; margin:34px 0 12px;}
+main h3{font-size:16px; font-weight:600; margin:22px 0 8px; color:var(--accent);}
+main p{margin:0 0 14px; color:#cdd3e0;}
+main ul, main ol{margin:0 0 16px; padding-left:22px; color:#cdd3e0;}
+main li{margin:6px 0;}
+main strong{color:var(--ink); font-weight:600;}
+main a{color:var(--accent);}
+.card{
+  background:var(--panel); border:1px solid rgba(255,255,255,.05);
+  border-radius:14px; padding:18px 20px; margin:18px 0;
+}
+.updated{color:var(--muted); font-size:13px; margin-top:6px;}
+
+/* 광고 자리 (승인 후 코드 삽입, 비어 있으면 안 보임) */
+.ad-slot{width:100%; margin:30px 0; text-align:center;}
+.ad-slot:empty{display:none;}
+
+/* 하단 */
+.site-footer{margin-top:44px; padding-top:22px; border-top:1px solid rgba(255,255,255,.06);
+  color:var(--muted); font-size:13px; display:flex; flex-direction:column; gap:8px;}
+.site-footer .fnav{display:flex; gap:6px; flex-wrap:wrap;}
+.site-footer .fnav a{color:var(--muted); text-decoration:none;}
+.site-footer .fnav a:hover{color:var(--ink);}
+.site-footer .sep{opacity:.4;}
+
+@media (max-width:420px){
+  main h1{font-size:28px;}
+  .nav .logo{font-size:24px;}
+}
