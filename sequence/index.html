@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Simon — 색깔 순서 기억 게임 | Fuse</title>
+<title>컬러 시퀀스 — 색 순서 기억 게임 | Fuse</title>
 <meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
@@ -21,11 +21,11 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
-<link rel="canonical" href="https://fusepuzzle.com/simon/">
-<meta property="og:url" content="https://fusepuzzle.com/simon/">
-<meta property="og:title" content="Simon — 색깔 순서 기억 게임 | Fuse">
-<meta property="og:description" content="색깔이 나타나는 순서를 기억했다가 따라 누르는 무료 웹 게임. 라운드가 올라갈수록 순서가 길어집니다.">
-<meta name="description" content="색깔이 반짝이는 순서를 따라 누르는 순발력·기억력 게임. 설치 없이 바로 즐기는 무료 웹 Simon 게임.">
+<link rel="canonical" href="https://fusepuzzle.com/sequence/">
+<meta property="og:url" content="https://fusepuzzle.com/sequence/">
+<meta property="og:title" content="컬러 시퀀스 — 색 순서 기억 게임 | Fuse">
+<meta property="og:description" content="색이 나타나는 순서를 기억했다가 따라 누르는 무료 웹 게임. 라운드가 올라갈수록 순서가 길어집니다.">
+<meta name="description" content="색이 반짝이는 순서를 따라 누르는 순발력·기억력 게임. 설치 없이 바로 즐기는 무료 웹 순서 기억 게임.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -180,7 +180,7 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo">Simon</div>
+        <div class="logo">컬러 시퀀스</div>
         <div class="tagline">색 순서 기억 게임</div>
       </div>
       <div class="scores">
@@ -280,7 +280,7 @@
   const store = (() => {
     let mem = {};
     try {
-      const k = '__simon_test';
+      const k = '__sequence_test';
       localStorage.setItem(k, '1');
       localStorage.removeItem(k);
       return {
@@ -379,10 +379,10 @@
     startBtn.textContent = '다시 하기';
 
     const stage = round;
-    const prevBest = parseInt(store.get('simon_best')) || 0;
+    const prevBest = parseInt(store.get('sequence_best')) || 0;
     const isNewBest = stage > prevBest;
     if (isNewBest) {
-      store.set('simon_best', stage);
+      store.set('sequence_best', stage);
       bestEl.textContent = stage;
     }
 
@@ -401,7 +401,7 @@
     const stage = round;
     const tier = tierFor(stage);
     const pct = percentileFor(stage);
-    const text = `Simon 순서 기억 게임 ${stage}단계 도달! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/simon/`;
+    const text = `컬러 시퀀스 ${stage}단계 도달! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/sequence/`;
     try {
       if (navigator.share) {
         await navigator.share({ text });
@@ -442,7 +442,7 @@
   });
 
   // 초기화: 최고 기록 로드
-  const best = store.get('simon_best');
+  const best = store.get('sequence_best');
   if (best) bestEl.textContent = best;
 })();
 </script>
