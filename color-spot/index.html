@@ -123,15 +123,38 @@
   .overlay .final b{font-size:34px; font-weight:800; display:block; margin-top:2px;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .overlay .ov-tier{font-size:44px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
+  .overlay .ov-title{
+    font-size:24px; font-weight:800; line-height:1.15; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .overlay .ov-pct{
+    font-size:15px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:999px; padding:6px 16px; margin-top:8px;
+  }
+  .overlay .ov-pct b{color:var(--accent);}
+  .ov-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
   .btn-primary{
     font-family:inherit; font-weight:700; font-size:15px; color:#fff;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     border:none; border-radius:var(--radius); padding:12px 24px; cursor:pointer;
-    margin-top:14px; transition:filter .15s ease, transform .08s ease;
+    transition:filter .15s ease, transform .08s ease;
   }
   .btn-primary:hover{filter:brightness(1.05);}
   .btn-primary:active{transform:translateY(1px);}
   .btn-primary:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .btn-ghost{
+    font-family:inherit; font-weight:600; font-size:14px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius); padding:12px 18px; cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  .btn-ghost:hover{background:#232b3d;}
+  .btn-ghost:active{transform:translateY(1px);}
+  .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
 
   .ad-slot:empty{display:none;}
   .ad-slot{margin:16px 0;}
@@ -177,8 +200,15 @@
       <div class="overlay" id="overlay">
         <div class="big" id="ov-big">색 찾기</div>
         <div class="sub" id="ov-sub">여러 타일 중 <b>딱 하나</b> 다른 색을 찾아 누르세요.<br>맞힐수록 색 차이가 줄고 시간이 채워집니다.</div>
+        <div class="ov-tier hidden" id="ov-tier"></div>
+        <div class="ov-title hidden" id="ov-title"></div>
         <div class="final hidden" id="ov-final">최종 점수<b id="ov-score">0</b></div>
-        <button class="btn-primary" id="startBtn">시작</button>
+        <div class="ov-pct hidden" id="ov-pct"></div>
+        <div class="ov-actions">
+          <button class="btn-primary" id="startBtn">시작</button>
+          <button class="btn-ghost hidden" id="shareBtn">결과 복사</button>
+        </div>
+        <div class="ov-note hidden" id="ov-note">* 상위 %는 재미로 보는 추정치예요.</div>
       </div>
     </div>
 
@@ -209,8 +239,36 @@
   const ovSub    = document.getElementById('ov-sub');
   const ovFinal  = document.getElementById('ov-final');
   const ovScore  = document.getElementById('ov-score');
+  const ovTier   = document.getElementById('ov-tier');
+  const ovTitle  = document.getElementById('ov-title');
+  const ovPct    = document.getElementById('ov-pct');
+  const ovNote   = document.getElementById('ov-note');
   const startBtn = document.getElementById('startBtn');
+  const shareBtn = document.getElementById('shareBtn');
   document.getElementById('fyear').textContent = new Date().getFullYear();
+
+  // --- 등급/칭호: 찾은 개수(점수)에 따라 ---
+  const tierFor = (s) => {
+    if (s >= 35) return { emoji:'🧠', title:'매의 눈' };
+    if (s >= 25) return { emoji:'🏆', title:'마스터' };
+    if (s >= 17) return { emoji:'💎', title:'전문가' };
+    if (s >= 11) return { emoji:'🥇', title:'숙련' };
+    if (s >= 6)  return { emoji:'🥈', title:'견습' };
+    return { emoji:'🥉', title:'초보' };
+  };
+
+  // --- 상위 %: 점수 구간별 추정(재미용). 점수 높을수록 상위 ---
+  const percentileFor = (s) => {
+    if (s <= 3)  return 95;
+    if (s <= 6)  return 85;
+    if (s <= 10) return 70;
+    if (s <= 15) return 50;
+    if (s <= 20) return 32;
+    if (s <= 26) return 18;
+    if (s <= 33) return 9;
+    if (s <= 40) return 4;
+    return 1.5;
+  };
 
   // --- 저장소: try-catch + 메모리 폴백 ---
   const store = (() => {
@@ -342,18 +400,41 @@
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null; lastT = 0;
 
-    if (score > best) {
+    const isNewBest = score > best;
+    if (isNewBest) {
       best = score;
       store.set('colorspot_best', best);
       bestEl.textContent = best;
     }
 
+    // 결과 카드: 등급/칭호 + 상위 %
+    const tier = tierFor(score);
+    const pct = percentileFor(score);
     ovBig.textContent = '게임 오버!';
     ovSub.classList.add('hidden');
-    ovFinal.classList.remove('hidden');
+    ovTier.textContent = tier.emoji;
+    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
     ovScore.textContent = score;
+    ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
+    [ovTier, ovTitle, ovFinal, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
     startBtn.textContent = '다시 하기';
     overlay.classList.remove('hidden');
+  };
+
+  // 결과 공유(Web Share 우선, 미지원 시 클립보드 복사)
+  const shareResult = async () => {
+    const tier = tierFor(score);
+    const pct = percentileFor(score);
+    const text = `색 찾기 게임에서 ${score}개 발견! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/color-spot/`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        shareBtn.textContent = '복사됨!';
+        setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
+      }
+    } catch {}
   };
 
   const startGame = () => {
@@ -365,7 +446,7 @@
     scoreEl.textContent = '0';
     overlay.classList.add('hidden');
     ovSub.classList.remove('hidden');
-    ovFinal.classList.add('hidden');
+    [ovTier, ovTitle, ovFinal, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
     updateBar();
     renderStage();
     rafId = requestAnimationFrame(loop);
@@ -380,6 +461,7 @@
     }
   });
   startBtn.addEventListener('click', startGame);
+  shareBtn.addEventListener('click', shareResult);
 
   updateBar();
 })();
