@@ -98,6 +98,22 @@
   .board .ms{font-size:52px; font-weight:800; line-height:1; color:#fff;}
   .board .ms small{font-size:22px; font-weight:600;}
 
+  /* 결과 등급/상위% */
+  .res-grade{
+    display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;
+    margin-top:12px;
+  }
+  .res-tier{font-size:26px; line-height:1;}
+  .res-title{font-size:18px; font-weight:800; color:var(--ink);}
+  .res-pct{
+    font-size:14px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.1);
+    border-radius:999px; padding:5px 12px;
+  }
+  .res-pct b{color:var(--accent);}
+  .res-note{font-size:13px; color:var(--muted); margin-top:12px;}
+  .res-note .best{color:#37a86e; font-weight:700;}
+
   .avg-row{
     display:flex; gap:8px; margin-top:14px; justify-content:center; flex-wrap:wrap;
     min-height:20px;
@@ -209,6 +225,28 @@
   // 시간 측정은 monotonic clock(performance.now) 사용
   const now = () => performance.now();
 
+  // --- 등급/칭호: 반응시간(ms)에 따라 (낮을수록 좋음) ---
+  const tierFor = (ms) => {
+    if (ms < 180) return { emoji:'🧠', title:'반응의 신' };
+    if (ms < 220) return { emoji:'🏆', title:'마스터' };
+    if (ms < 260) return { emoji:'💎', title:'전문가' };
+    if (ms < 300) return { emoji:'🥇', title:'숙련' };
+    if (ms < 350) return { emoji:'🥈', title:'견습' };
+    return { emoji:'🥉', title:'초보' };
+  };
+
+  // --- 상위 %: 반응시간 구간별 추정(재미용). ms 낮을수록 상위 ---
+  const percentileFor = (ms) => {
+    if (ms < 160) return 1;
+    if (ms < 180) return 3;
+    if (ms < 200) return 8;
+    if (ms < 220) return 18;
+    if (ms < 250) return 35;
+    if (ms < 280) return 55;
+    if (ms < 320) return 75;
+    return 90;
+  };
+
   const setBoard = (cls, big, sub) => {
     board.className = 'board ' + cls;
     if (big !== undefined) bigEl.innerHTML = big;
@@ -248,17 +286,28 @@
     if (recent.length > 5) recent.shift();
     renderAvg();
 
-    let note = '다시 하려면 탭하세요.';
-    if (!Number.isFinite(best) || ms < best) {
+    const isNewBest = !Number.isFinite(best) || ms < best;
+    if (isNewBest) {
       best = ms;
       store.set('reaction_best', best);
       bestEl.innerHTML = best + '<small>ms</small>';
-      note = '🎉 최고 기록! 다시 하려면 탭하세요.';
     }
+
+    // 등급/칭호 + 상위 % 표시
+    const tier = tierFor(ms);
+    const pct = percentileFor(ms);
+    const note = (isNewBest ? '<span class="best">🎉 최고 기록!</span> ' : '') + '다시 하려면 탭하세요.';
+    const sub =
+      '<div class="res-grade">' +
+        '<span class="res-tier">' + tier.emoji + '</span>' +
+        '<span class="res-title">' + tier.title + '</span>' +
+        '<span class="res-pct">상위 <b>' + pct + '%</b></span>' +
+      '</div>' +
+      '<div class="res-note">' + note + '</div>';
 
     setBoard('idle',
       '<span class="ms">' + ms + '<small>ms</small></span>',
-      note);
+      sub);
   };
 
   const tooSoon = () => {
