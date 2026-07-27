@@ -247,6 +247,10 @@
         <div class="tagline">1~9를 겹치지 않게 채우기</div>
       </div>
       <div class="scores">
+        <div class="score hidden" id="lvBox">
+          <div class="label">단계</div>
+          <div class="val" id="level">1</div>
+        </div>
         <div class="score">
           <div class="label">시간</div>
           <div class="val" id="timer">0:00</div>
@@ -262,6 +266,7 @@
       <button class="diff on" data-d="easy">쉬움</button>
       <button class="diff" data-d="normal">보통</button>
       <button class="diff" data-d="hard">어려움</button>
+      <button class="diff" data-d="challenge">도전</button>
     </div>
 
     <div class="board-outer">
@@ -301,6 +306,9 @@
       가로줄·세로줄·굵은 선으로 나뉜 3×3 칸에 <b>1부터 9까지 숫자가 한 번씩만</b> 들어가도록 빈칸을 채우면 됩니다.
       칸을 고른 뒤 아래 숫자판을 누르세요. <b>메모</b>를 켜면 후보 숫자를 작게 적어둘 수 있고,
       확실하지 않을 땐 <b>되돌리기</b>로 이전 상태로 갈 수 있습니다. 진행 상황은 자동 저장되어 나중에 이어서 풀 수 있어요.
+      <br><br>
+      <b>도전 모드</b>는 단계를 깰수록 주어지는 숫자가 줄어 점점 어려워집니다. 대신 실수는 <b>3번까지</b>만 허용되고,
+      3번을 넘기면 그 단계는 실패해 같은 단계를 새 문제로 다시 풀게 됩니다. 도달한 <b>최고 단계</b>가 기록으로 남아요.
     </section>
 
     <footer>
@@ -321,6 +329,8 @@
   const padEl   = document.getElementById('pad');
   const timerEl = document.getElementById('timer');
   const missEl  = document.getElementById('mistakes');
+  const lvBox   = document.getElementById('lvBox');
+  const levelEl = document.getElementById('level');
   const diffsEl = document.getElementById('diffs');
   const overlay = document.getElementById('overlay');
   const ovBig   = document.getElementById('ov-big');
@@ -438,15 +448,20 @@
 
   // 해답에서 칸을 지우되, 항상 유일해가 유지되도록 확인
   const DIFF = {
-    easy:   { label:'쉬움',   keep:45 },
-    normal: { label:'보통',   keep:36 },
-    hard:   { label:'어려움', keep:30 }
+    easy:      { label:'쉬움',   keep:45 },
+    normal:    { label:'보통',   keep:36 },
+    hard:      { label:'어려움', keep:30 },
+    challenge: { label:'도전' }            // 단서 수는 단계별로 계산
   };
 
-  const makePuzzle = (diff) => {
+  // 도전 모드: 단계가 오를수록 주어지는 숫자가 줄어 어려워진다 (최소 26개에서 고정)
+  const MIN_CLUES = 26;
+  const cluesForLevel = (lv) => Math.max(MIN_CLUES, 48 - 2 * (lv - 1));
+  const MAX_MISTAKES = 3;                  // 도전 모드에서만 적용
+
+  const makePuzzle = (target) => {
     const solution = makeSolution();
     const puzzle = solution.slice();
-    const target = DIFF[diff].keep;
     let filled = 81;
     // 대칭 위치를 함께 지워 보기 좋은 판을 만든다
     const order = shuffle([...Array(81).keys()]);
@@ -462,6 +477,17 @@
         cells.forEach((x, k) => { puzzle[x] = backup[k]; });
       } else {
         filled -= cells.length;
+      }
+    }
+    // 대칭 제거만으로 목표에 못 미치면, 한 칸씩 더 지워 목표 단서 수를 맞춘다
+    if (filled > target) {
+      for (const i of shuffle([...Array(81).keys()])) {
+        if (filled <= target) break;
+        if (puzzle[i] === 0) continue;
+        const backup = puzzle[i];
+        puzzle[i] = 0;
+        if (solveCount(puzzle.slice(), 2) !== 1) puzzle[i] = backup;
+        else filled--;
       }
     }
     return { puzzle, solution };
@@ -493,6 +519,17 @@
     return PCTS[5];
   };
 
+  // 도전 모드는 시간이 아니라 '도달 단계'로 평가한다
+  const LEVEL_CUTS = [15, 11, 8, 5, 3];
+  const tierForLevel = (lv) => {
+    for (let i = 0; i < LEVEL_CUTS.length; i++) if (lv >= LEVEL_CUTS[i]) return TIERS[i];
+    return TIERS[5];
+  };
+  const percentileForLevel = (lv) => {
+    for (let i = 0; i < LEVEL_CUTS.length; i++) if (lv >= LEVEL_CUTS[i]) return PCTS[i];
+    return PCTS[5];
+  };
+
   const fmtTime = (sec) => {
     const m = Math.floor(sec / 60), s = sec % 60;
     return m + ':' + String(s).padStart(2, '0');
@@ -500,6 +537,7 @@
 
   // ===== 게임 상태 =====
   let difficulty = 'easy';
+  let level = 1;           // 도전 모드의 현재 단계
   let puzzle = null;       // 처음 주어진 숫자(0=빈칸)
   let solution = null;     // 정답
   let grid = null;         // 현재 입력값
@@ -516,6 +554,11 @@
 
   const saveKey = 'sudoku_save';
   const bestKey = d => 'sudoku_best_' + d;
+  const bestLevelKey = 'sudoku_best_level';
+  const levelKey = 'sudoku_level';          // 진행 중인 단계(다음 방문에도 이어감)
+  const isChallenge = () => difficulty === 'challenge';
+  let advanceOnStart = false;               // 단계 클리어 후 '다음 단계' 대기 상태
+  let pendingResume = false;                // 저장된 게임을 이어할 수 있는 상태
 
   // --- 판 그리기 ---
   const buildBoard = () => {
@@ -591,7 +634,10 @@
       }
     }
     renderPadCounts();
-    missEl.textContent = mistakes;
+    // 도전 모드에선 단계를 보여주고, 실수는 제한 횟수와 함께 표시
+    lvBox.classList.toggle('hidden', !isChallenge());
+    levelEl.textContent = level;
+    missEl.textContent = isChallenge() ? (mistakes + '/' + MAX_MISTAKES) : mistakes;
     missEl.classList.toggle('warn', mistakes > 0);
     hintLeftEl.textContent = hintsLeft;
     hintBtn.disabled = hintsLeft <= 0 || !running;
@@ -604,7 +650,7 @@
     if (!running) return;
     try {
       store.set(saveKey, JSON.stringify({
-        difficulty, elapsed, mistakes, hintsLeft,
+        difficulty, level, elapsed, mistakes, hintsLeft,
         puzzle: puzzle.join(''),
         solution: solution.join(''),
         grid: grid.join(''),
@@ -625,6 +671,7 @@
 
   const applyState = (s) => {
     difficulty = s.difficulty in DIFF ? s.difficulty : 'easy';
+    level    = Math.max(1, s.level | 0 || 1);
     puzzle   = s.puzzle.split('').map(Number);
     solution = s.solution.split('').map(Number);
     grid     = s.grid.split('').map(Number);
@@ -694,6 +741,8 @@
     }
     render();
     saveState();
+    // 도전 모드는 실수 3회면 단계 실패
+    if (isChallenge() && mistakes >= MAX_MISTAKES) { failLevel(); return; }
     checkComplete();
   };
 
@@ -742,10 +791,37 @@
     finish();
   };
 
+  const showResultCard = () => {
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
+    ovSub.classList.add('hidden');
+    overlay.classList.remove('hidden');
+  };
+
   const finish = () => {
     running = false;
     clearInterval(tickId);
     store.del(saveKey);
+
+    if (isChallenge()) {
+      // 단계 클리어 → 다음 단계로
+      const prevBest = parseInt(store.get(bestLevelKey), 10) || 0;
+      const isNewBest = level > prevBest;
+      if (isNewBest) store.set(bestLevelKey, level);
+
+      const tier = tierForLevel(level);
+      const pct = percentileForLevel(level);
+      ovBig.textContent = `${level}단계 완료!`;
+      ovTier.textContent = tier.emoji;
+      ovTitle.textContent = (isNewBest ? '🎉 최고 단계! · ' : '') + tier.title;
+      ovTime.textContent = fmtTime(elapsed);
+      ovStat.textContent = `단서 ${puzzle.filter(Boolean).length}개 · 실수 ${mistakes}회 · 힌트 ${3 - hintsLeft}회`;
+      ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
+      startBtn.textContent = '다음 단계 →';
+      advanceOnStart = true;
+      showResultCard();
+      render();
+      return;
+    }
 
     const bk = bestKey(difficulty);
     const prevBest = parseInt(store.get(bk), 10);
@@ -755,22 +831,57 @@
     const tier = tierFor(elapsed, difficulty);
     const pct = percentileFor(elapsed, difficulty);
     ovBig.textContent = '완성!';
-    ovSub.classList.add('hidden');
     ovTier.textContent = tier.emoji;
     ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
     ovTime.textContent = fmtTime(elapsed);
     ovStat.textContent = `${DIFF[difficulty].label} · 실수 ${mistakes}회 · 힌트 ${3 - hintsLeft}회`;
     ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
-    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
     startBtn.textContent = '새 게임';
+    showResultCard();
+    render();
+  };
+
+  // 도전 모드 전용: 실수 3회로 단계 실패 (단계는 유지, 같은 단계를 새 문제로 재도전)
+  const failLevel = () => {
+    running = false;
+    clearInterval(tickId);
+    store.del(saveKey);
+
+    const bestLv = parseInt(store.get(bestLevelKey), 10) || 0;
+    ovBig.textContent = '단계 실패';
+    ovTier.textContent = '💥';
+    ovTitle.textContent = `${level}단계`;
+    ovTime.textContent = fmtTime(elapsed);
+    ovStat.textContent = `실수 ${MAX_MISTAKES}회로 실패했어요 · 최고 단계 ${bestLv}`;
+    ovPct.classList.add('hidden');
+    ovNote.classList.add('hidden');
+    [ovTier, ovTitle, ovFinal, ovStat, shareBtn].forEach(el => el.classList.remove('hidden'));
+    ovSub.classList.add('hidden');
+    startBtn.textContent = '다시 도전';
+    advanceOnStart = false;              // 실패 시 단계는 그대로, 같은 단계를 새 문제로
     overlay.classList.remove('hidden');
     render();
   };
 
   const shareResult = async () => {
+    let text;
+    if (isChallenge()) {
+      const tier = tierForLevel(level);
+      const pct = percentileForLevel(level);
+      text = `스도쿠 도전 모드 ${level}단계 도달! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/sudoku/`;
+      try {
+        if (navigator.share) { await navigator.share({ text }); }
+        else if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          shareBtn.textContent = '복사됨!';
+          setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
+        }
+      } catch {}
+      return;
+    }
     const tier = tierFor(elapsed, difficulty);
     const pct = percentileFor(elapsed, difficulty);
-    const text = `스도쿠 ${DIFF[difficulty].label} ${fmtTime(elapsed)} 완성! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/sudoku/`;
+    text = `스도쿠 ${DIFF[difficulty].label} ${fmtTime(elapsed)} 완성! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/sudoku/`;
     try {
       if (navigator.share) {
         await navigator.share({ text });
@@ -803,7 +914,8 @@
     overlay.classList.remove('hidden');
 
     setTimeout(() => {
-      const made = makePuzzle(difficulty);
+      const keep = isChallenge() ? cluesForLevel(level) : DIFF[difficulty].keep;
+      const made = makePuzzle(keep);
       puzzle = made.puzzle;
       solution = made.solution;
       grid = puzzle.slice();
@@ -835,13 +947,24 @@
     if (!btn) return;
     if (btn.dataset.d === difficulty && running) return;
     difficulty = btn.dataset.d;
+    // 도전 모드로 들어오면 이전에 진행하던 단계에서 이어간다
+    if (isChallenge()) level = Math.max(1, parseInt(store.get(levelKey), 10) || 1);
     [...diffsEl.children].forEach(b => b.classList.toggle('on', b === btn));
     newGame();
   });
 
   startBtn.addEventListener('click', () => {
-    // 저장된 게임이 있으면 이어하기, 없으면 새 게임
-    if (!running && puzzle && grid && grid.some((v, i) => v !== solution[i])) {
+    // 단계 클리어 후엔 다음 단계로 진행
+    if (isChallenge() && advanceOnStart) {
+      advanceOnStart = false;
+      level++;
+      store.set(levelKey, level);
+      newGame();
+      return;
+    }
+    // 저장해 둔 게임이 있을 때만 이어하기 (실패·완료 후엔 항상 새 문제)
+    if (pendingResume) {
+      pendingResume = false;
       beginPlay();
     } else {
       newGame();
@@ -883,8 +1006,10 @@
   if (saved) {
     applyState(saved);
     history = [];
+    pendingResume = true;
     ovBig.textContent = '이어서 풀기';
-    ovSub.innerHTML = `${DIFF[difficulty].label} · ${fmtTime(elapsed)} 진행 중인 게임이 있어요.`;
+    const where = isChallenge() ? `도전 ${level}단계` : DIFF[difficulty].label;
+    ovSub.innerHTML = `${where} · ${fmtTime(elapsed)} 진행 중인 게임이 있어요.`;
     startBtn.textContent = '이어하기';
     render();
   } else {
