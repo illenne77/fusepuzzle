@@ -60,7 +60,7 @@
   header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
   .brand{display:flex; flex-direction:column;}
   .logo{
-    font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
+    margin:0; font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
@@ -225,7 +225,7 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo">빠른 암산</div>
+        <h1 class="logo">빠른 암산</h1>
         <div class="tagline">30초 계산 챌린지</div>
       </div>
       <div class="scores">
@@ -295,6 +295,17 @@
         시간에 쫓기면 계산 자체보다 <b>입력에서</b> 실수가 많이 납니다. 답은 맞게 떠올렸는데 손가락이 다른 숫자를 누르는 식입니다.
         속도를 조금 낮추더라도 정확하게 누르는 편이 결과적으로 점수가 높습니다.
         콤보가 끊기면 손해가 크기 때문입니다.
+      </p>
+
+      <h3>어떤 문제가 나오나요</h3>
+      <p>
+        덧셈·뺄셈은 두 자리 수 안팎, 곱셈은 구구단에서 조금 확장된 범위, 나눗셈은
+        <b>항상 나누어떨어지는 문제만</b> 나옵니다. 소수점이나 음수는 등장하지 않습니다.
+        어려운 계산이 아니라 <b>쉬운 계산을 얼마나 막힘없이 이어가느냐</b>를 겨루도록 설계했습니다.
+      </p>
+      <p>
+        그래서 콤보가 중요합니다. 하나 틀려서 콤보가 끊기는 손해가 문제 하나를 빨리 푸는 이득보다 큽니다.
+        확신이 서지 않는 문제는 반 박자 늦더라도 정확하게 푸는 쪽이 총점에서 앞섭니다.
       </p>
 
       <h3>기록에 대해</h3>
