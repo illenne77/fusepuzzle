@@ -124,6 +124,33 @@
   }
   .chip b{color:var(--ink); font-weight:700;}
 
+
+  /* 페이지 본문 콘텐츠 */
+  .content{
+    font-size:14px; color:#cdd3e0; line-height:1.75;
+    background:var(--panel); border-radius:var(--radius);
+    padding:18px 18px 20px; margin-top:18px;
+  }
+  .content h2{font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  .content h3{font-size:14px; color:var(--accent); margin:18px 0 6px; font-weight:600;}
+  .content p{margin:0 0 12px;}
+  .content ul,.content ol{margin:0 0 12px; padding-left:20px;}
+  .content li{margin:5px 0;}
+  .content b,.content strong{color:var(--ink); font-weight:600;}
+  .content a{color:var(--accent);}
+  .more-nav{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:14px;
+  }
+  .more-nav a{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--panel); border:1px solid rgba(255,255,255,.07);
+    border-radius:var(--radius); padding:11px 8px;
+    color:var(--ink); font-size:13px; font-weight:600;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .more-nav a:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+  .more-title{font-size:13px; color:var(--muted); margin:18px 0 0; text-align:center;}
+
   .ad-slot:empty{display:none;}
   .ad-slot{margin:16px 0;}
 
@@ -171,8 +198,51 @@
     <div class="ad-slot" id="ad-slot"></div>
     <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
 
+    <section class="content">
+      <h2>게임 방법</h2>
+      <p>
+        화면을 누르면 <b>빨간색</b>으로 바뀌며 대기가 시작됩니다. 잠시 뒤 <b>초록색</b>으로 바뀌는 순간,
+        최대한 빠르게 누르세요. 초록으로 바뀐 뒤 누르기까지 걸린 시간이 <b>밀리초(ms)</b> 단위로 측정됩니다.
+      </p>
+      <p>
+        대기 시간은 매번 무작위라 예측할 수 없습니다. 초록이 되기 전에 누르면 그 시도는 무효가 되니
+        <b>미리 누르지 말고 기다렸다가</b> 반응해야 합니다.
+      </p>
+
+      <h3>기록을 줄이는 방법</h3>
+      <ul>
+        <li><b>손가락을 화면에 미리 대두세요.</b> 움직이는 거리가 줄어드는 만큼 시간이 짧아집니다. 가장 확실한 개선입니다.</li>
+        <li><b>한 점을 노려보지 마세요.</b> 화면 전체를 느슨하게 보는 편이 색 변화를 더 빨리 감지합니다.</li>
+        <li><b>예측하지 마세요.</b> 미리 누르면 무효가 되고, 다음 판에서 더 긴장하게 되어 평균이 나빠집니다.</li>
+        <li><b>피곤할 때는 확실히 느려집니다.</b> 기록에 도전하려면 쉬고 나서 해보세요.</li>
+      </ul>
+
+      <h3>내 기록은 어느 정도일까</h3>
+      <p>
+        사람의 단순 시각 반응속도는 대체로 <b>200~250ms</b> 범위로 알려져 있습니다.
+        다만 웹에서 재면 화면이 색을 바꾸는 시간과 입력이 전달되는 시간이 더해져
+        보통 <b>250~300ms</b> 근처에 몰립니다. 그러니 300ms가 나왔다고 느린 것이 아닙니다.
+      </p>
+      <p>
+        한 번의 기록보다 <b>여러 번의 평균</b>이 훨씬 정확합니다. 화면 아래에 최근 기록의 평균이 함께 표시되니
+        다섯 번쯤 해보고 판단하시는 걸 권합니다. 자세한 내용은
+        <a href="/guide/reaction-time/">반응속도 평균은 얼마일까</a>에서 다룹니다.
+      </p>
+    </section>
+
+    <p class="more-title">다른 게임도 해보세요</p>
+    <nav class="more-nav">
+        <a href="/fuse/">숫자 합치기</a>
+        <a href="/sudoku/">스도쿠</a>
+        <a href="/sequence/">컬러 시퀀스</a>
+        <a href="/color-spot/">색 찾기</a>
+        <a href="/math/">빠른 암산</a>
+    </nav>
+
     <footer>
       <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="/">홈</a><span style="opacity:.4">·</span>
+        <a href="/guide/">공략</a><span style="opacity:.4">·</span>
         <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
         <a href="../about.html">소개</a><span style="opacity:.4">·</span>
         <a href="../privacy.html">개인정보처리방침</a>

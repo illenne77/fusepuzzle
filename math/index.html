@@ -178,6 +178,33 @@
   .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
   .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
 
+
+  /* 페이지 본문 콘텐츠 */
+  .content{
+    font-size:14px; color:#cdd3e0; line-height:1.75;
+    background:var(--panel); border-radius:var(--radius);
+    padding:18px 18px 20px; margin-top:18px;
+  }
+  .content h2{font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  .content h3{font-size:14px; color:var(--accent); margin:18px 0 6px; font-weight:600;}
+  .content p{margin:0 0 12px;}
+  .content ul,.content ol{margin:0 0 12px; padding-left:20px;}
+  .content li{margin:5px 0;}
+  .content b,.content strong{color:var(--ink); font-weight:600;}
+  .content a{color:var(--accent);}
+  .more-nav{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:14px;
+  }
+  .more-nav a{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--panel); border:1px solid rgba(255,255,255,.07);
+    border-radius:var(--radius); padding:11px 8px;
+    color:var(--ink); font-size:13px; font-weight:600;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .more-nav a:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+  .more-title{font-size:13px; color:var(--muted); margin:18px 0 0; text-align:center;}
+
   .ad-slot:empty{display:none;}
   .ad-slot{margin:16px 0;}
 
@@ -244,8 +271,52 @@
     <div class="ad-slot" id="ad-slot"></div>
     <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
 
+    <section class="content">
+      <h2>게임 방법</h2>
+      <p>
+        제한 시간 안에 <b>사칙연산 문제를 최대한 많이</b> 풀어내는 게임입니다.
+        문제가 하나씩 나오면 답을 입력하세요. 맞히면 다음 문제로 넘어가고, 연속으로 맞히면 <b>콤보</b>가 쌓입니다.
+      </p>
+      <p>
+        어렵게 꼬인 문제는 나오지 않습니다. 두 자리 안팎의 덧셈·뺄셈·곱셈·나눗셈이라,
+        계산 실력보다 <b>얼마나 빠르고 침착하게 처리하느냐</b>를 겨루는 쪽에 가깝습니다.
+      </p>
+
+      <h3>암산이 빨라지는 요령</h3>
+      <ul>
+        <li><b>큰 자리부터 계산하세요.</b> 47 + 38이면 40+30=70을 먼저 잡고 7+8=15를 더해 85로 갑니다. 종이에 쓸 때와 순서가 반대입니다.</li>
+        <li><b>10으로 만들어 계산하세요.</b> 8을 더할 땐 10을 더하고 2를 빼는 편이 빠릅니다. 곱셈도 마찬가지로 19×4는 20×4−4로 처리합니다.</li>
+        <li><b>구구단 밖도 쪼개세요.</b> 13×6은 (10×6)+(3×6)으로 나누면 암산 범위 안으로 들어옵니다.</li>
+        <li><b>답을 확신하면 바로 넘기세요.</b> 한 번 더 확인하는 습관이 시간을 가장 많이 잡아먹습니다.</li>
+      </ul>
+
+      <h3>왜 틀릴까</h3>
+      <p>
+        시간에 쫓기면 계산 자체보다 <b>입력에서</b> 실수가 많이 납니다. 답은 맞게 떠올렸는데 손가락이 다른 숫자를 누르는 식입니다.
+        속도를 조금 낮추더라도 정확하게 누르는 편이 결과적으로 점수가 높습니다.
+        콤보가 끊기면 손해가 크기 때문입니다.
+      </p>
+
+      <h3>기록에 대해</h3>
+      <p>
+        최고 점수는 브라우저에 저장되어 다음에 들어와도 남아 있습니다.
+        짧게 여러 번 하기 좋은 게임이라, 자투리 시간에 기록을 조금씩 갱신해 나가기에 적합합니다.
+      </p>
+    </section>
+
+    <p class="more-title">다른 게임도 해보세요</p>
+    <nav class="more-nav">
+        <a href="/fuse/">숫자 합치기</a>
+        <a href="/sudoku/">스도쿠</a>
+        <a href="/sequence/">컬러 시퀀스</a>
+        <a href="/reaction/">반응속도</a>
+        <a href="/color-spot/">색 찾기</a>
+    </nav>
+
     <footer>
       <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="/">홈</a><span style="opacity:.4">·</span>
+        <a href="/guide/">공략</a><span style="opacity:.4">·</span>
         <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
         <a href="../about.html">소개</a><span style="opacity:.4">·</span>
         <a href="../privacy.html">개인정보처리방침</a>

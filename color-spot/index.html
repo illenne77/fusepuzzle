@@ -156,6 +156,33 @@
   .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
   .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
 
+
+  /* 페이지 본문 콘텐츠 */
+  .content{
+    font-size:14px; color:#cdd3e0; line-height:1.75;
+    background:var(--panel); border-radius:var(--radius);
+    padding:18px 18px 20px; margin-top:18px;
+  }
+  .content h2{font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  .content h3{font-size:14px; color:var(--accent); margin:18px 0 6px; font-weight:600;}
+  .content p{margin:0 0 12px;}
+  .content ul,.content ol{margin:0 0 12px; padding-left:20px;}
+  .content li{margin:5px 0;}
+  .content b,.content strong{color:var(--ink); font-weight:600;}
+  .content a{color:var(--accent);}
+  .more-nav{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:14px;
+  }
+  .more-nav a{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--panel); border:1px solid rgba(255,255,255,.07);
+    border-radius:var(--radius); padding:11px 8px;
+    color:var(--ink); font-size:13px; font-weight:600;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .more-nav a:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+  .more-title{font-size:13px; color:var(--muted); margin:18px 0 0; text-align:center;}
+
   .ad-slot:empty{display:none;}
   .ad-slot{margin:16px 0;}
 
@@ -216,8 +243,52 @@
     <div class="ad-slot" id="ad-slot"></div>
     <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
 
+    <section class="content">
+      <h2>게임 방법</h2>
+      <p>
+        여러 개의 색 타일이 격자로 깔리는데, 그중 <b>딱 하나만 미묘하게 다른 색</b>입니다.
+        그 타일을 찾아 누르세요. 맞히면 점수가 오르고 시간이 조금 채워지며, 다음 단계로 넘어갑니다.
+      </p>
+      <p>
+        단계가 오를수록 <b>격자가 커지고 색 차이가 줄어들어</b> 점점 어려워집니다.
+        틀리면 시간이 깎이고, 시간이 다 되면 게임이 끝납니다. 그때까지 찾아낸 개수가 점수입니다.
+      </p>
+
+      <h3>더 잘 찾는 요령</h3>
+      <ul>
+        <li><b>한 칸씩 훑지 마세요.</b> 눈을 한 곳에 고정하고 화면 전체를 흐릿하게 보면, 다른 색 하나가 저절로 튀어 보입니다.</li>
+        <li><b>화면 밝기를 올리세요.</b> 어두운 화면에서는 미세한 명도 차이가 묻힙니다. 야외라면 더욱 그렇습니다.</li>
+        <li><b>모서리와 구석을 먼저 보세요.</b> 가운데에 비해 시선이 덜 가는 자리라 놓치기 쉽습니다.</li>
+        <li><b>막히면 눈을 한 번 깜빡이세요.</b> 같은 색을 오래 보면 감각이 둔해집니다. 시선을 리셋하면 다시 잘 보입니다.</li>
+      </ul>
+
+      <h3>왜 점점 안 보일까</h3>
+      <p>
+        사람의 눈은 <b>절대적인 색</b>보다 <b>색의 차이</b>에 민감하게 반응합니다.
+        그래서 두 색의 밝기 차이가 어느 선 아래로 내려가면 아무리 집중해도 구분되지 않는 지점이 옵니다.
+        이 게임의 후반부는 사실상 그 한계선을 찾아가는 과정입니다. 안 보이는 게 정상이니 너무 애쓰지 않으셔도 됩니다.
+      </p>
+
+      <h3>기록에 대해</h3>
+      <p>
+        최고 점수는 브라우저에 저장됩니다. 게임이 끝나면 찾은 개수에 따라 등급과 대략적인 상위 %가 표시되며,
+        결과를 복사해 친구에게 보낼 수도 있습니다.
+      </p>
+    </section>
+
+    <p class="more-title">다른 게임도 해보세요</p>
+    <nav class="more-nav">
+        <a href="/fuse/">숫자 합치기</a>
+        <a href="/sudoku/">스도쿠</a>
+        <a href="/sequence/">컬러 시퀀스</a>
+        <a href="/reaction/">반응속도</a>
+        <a href="/math/">빠른 암산</a>
+    </nav>
+
     <footer>
       <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="/">홈</a><span style="opacity:.4">·</span>
+        <a href="/guide/">공략</a><span style="opacity:.4">·</span>
         <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
         <a href="../about.html">소개</a><span style="opacity:.4">·</span>
         <a href="../privacy.html">개인정보처리방침</a>
