@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>슬라이드 퍼즐 — 15 퍼즐 무료 온라인 게임 | Fuse</title>
+<meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
+     crossorigin="anonymous"></script>
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- 소셜 공유 (Open Graph / Twitter) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fuse">
+<meta property="og:image" content="https://fusepuzzle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
+<link rel="canonical" href="https://fusepuzzle.com/slide/">
+<meta property="og:url" content="https://fusepuzzle.com/slide/">
+<meta property="og:title" content="슬라이드 퍼즐 — 15 퍼즐 무료 온라인 게임">
+<meta property="og:description" content="타일을 밀어 1부터 순서대로 맞추는 고전 퍼즐. 3×3·4×4·5×5 크기를 지원하며 반드시 풀 수 있는 문제만 나옵니다.">
+<meta name="description" content="타일을 밀어 숫자를 순서대로 맞추는 15 퍼즐(슬라이드 퍼즐). 3×3·4×4·5×5 크기 지원, 항상 풀 수 있는 배열만 출제되며 설치 없이 바로 즐길 수 있습니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10141f;
+    --panel:#1b2130;
+    --ink:#e8ecf4;
+    --muted:#8b93a7;
+    --accent:#5b8cff;
+    --accent-2:#8b5cf6;
+    --radius:10px;
+    --tile:#2a3348;
+    --tile-ok:#274058;   /* 제자리에 놓인 타일 */
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.14), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(139,92,246,.12), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Outfit', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{width:100%; max-width:460px;}
+
+  header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .brand{display:flex; flex-direction:column;}
+  .logo{
+    font-size:38px; font-weight:800; line-height:1; letter-spacing:-1px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:190px; line-height:1.4;}
+
+  .scores{display:flex; gap:8px;}
+  .score{
+    background:var(--panel); border-radius:var(--radius);
+    padding:8px 13px; min-width:66px; text-align:center;
+  }
+  .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
+  .score .val{font-size:20px; font-weight:700; line-height:1.1; margin-top:2px; font-variant-numeric:tabular-nums;}
+
+  /* 크기 선택 */
+  .sizes{display:flex; gap:6px; margin-bottom:12px;}
+  .size{
+    flex:1; font-family:inherit; font-weight:600; font-size:13px; color:var(--muted);
+    background:var(--panel); border:1px solid rgba(255,255,255,.06);
+    border-radius:var(--radius); padding:9px 4px; cursor:pointer;
+    transition:color .15s ease, background .15s ease;
+  }
+  .size:hover{background:#232b3d;}
+  .size:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .size.on{
+    color:#fff; border-color:transparent;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+  }
+  .size small{display:block; font-size:10px; font-weight:600; opacity:.75; margin-top:1px;}
+
+  .board-outer{position:relative; width:100%;}
+  .board{
+    position:relative; width:100%; aspect-ratio:1/1;
+    background:var(--panel); border-radius:14px;
+    overflow:hidden; touch-action:none; user-select:none;
+  }
+  .tile{
+    position:absolute; display:flex; align-items:center; justify-content:center;
+    background:var(--tile); border-radius:9px; cursor:pointer;
+    font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;
+    border:none; padding:0; font-family:inherit;
+    transition:left .13s ease, top .13s ease, background .15s ease;
+  }
+  .tile:focus-visible{outline:2px solid #fff; outline-offset:-2px; z-index:3;}
+  .tile.ok{background:var(--tile-ok); color:#a9c4ff;}
+  .tile.movable:hover{filter:brightness(1.18);}
+
+  /* 오버레이 */
+  .overlay{
+    position:absolute; inset:0; border-radius:14px;
+    background:rgba(16,20,31,.93); backdrop-filter:blur(3px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px; z-index:5;
+  }
+  .hidden{display:none !important;}
+  .overlay .big{font-size:26px; font-weight:800; line-height:1.2;}
+  .overlay .sub{font-size:14px; color:var(--muted); line-height:1.6; margin-top:8px;}
+  .ov-tier{font-size:42px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
+  .ov-title{
+    font-size:23px; font-weight:800; line-height:1.15; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .ov-final{font-size:14px; color:var(--ink); margin-top:6px;}
+  .ov-final b{font-size:30px; font-weight:800; display:block; margin-top:2px;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .ov-stat{font-size:13px; color:var(--muted); margin-top:6px;}
+  .ov-pct{
+    font-size:14px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:999px; padding:6px 14px; margin-top:8px;
+  }
+  .ov-pct b{color:var(--accent);}
+  .ov-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .btn-primary{
+    font-family:inherit; font-weight:700; font-size:15px; color:#fff;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    border:none; border-radius:var(--radius); padding:12px 22px; cursor:pointer;
+    transition:filter .15s ease, transform .08s ease;
+  }
+  .btn-primary:hover{filter:brightness(1.05);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-primary:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .btn-ghost{
+    font-family:inherit; font-weight:600; font-size:14px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius); padding:12px 16px; cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  .btn-ghost:hover{background:#232b3d;}
+  .btn-ghost:active{transform:translateY(1px);}
+  .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
+
+  .tools{display:flex; gap:8px; margin-top:12px;}
+  .tool{
+    flex:1; font-family:inherit; font-weight:600; font-size:14px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.06);
+    border-radius:var(--radius); padding:12px 6px; cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  .tool:hover{background:#232b3d;}
+  .tool:active{transform:translateY(1px);}
+  .tool:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  /* 본문 콘텐츠 */
+  .content{
+    font-size:14px; color:#cdd3e0; line-height:1.75;
+    background:var(--panel); border-radius:var(--radius);
+    padding:18px 18px 20px; margin-top:18px;
+  }
+  .content h2{font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  .content h3{font-size:14px; color:var(--accent); margin:18px 0 6px; font-weight:600;}
+  .content p{margin:0 0 12px;}
+  .content ul,.content ol{margin:0 0 12px; padding-left:20px;}
+  .content li{margin:5px 0;}
+  .content b,.content strong{color:var(--ink); font-weight:600;}
+  .content a{color:var(--accent);}
+  .more-nav{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:14px;}
+  .more-nav a{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--panel); border:1px solid rgba(255,255,255,.07);
+    border-radius:var(--radius); padding:11px 8px;
+    color:var(--ink); font-size:13px; font-weight:600;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .more-nav a:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+  .more-title{font-size:13px; color:var(--muted); margin:18px 0 0; text-align:center;}
+
+  .ad-slot:empty{display:none;}
+  .ad-slot{margin:16px 0;}
+
+  footer{
+    font-size:13px; color:var(--muted); text-align:center;
+    margin-top:24px; line-height:1.6;
+  }
+  footer a{color:var(--ink); text-decoration:none; transition:color .2s;}
+  footer a:hover{color:var(--accent);}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">슬라이드</div>
+        <div class="tagline">밀어서 순서대로 맞추기</div>
+      </div>
+      <div class="scores">
+        <div class="score">
+          <div class="label">이동</div>
+          <div class="val" id="moves">0</div>
+        </div>
+        <div class="score">
+          <div class="label">시간</div>
+          <div class="val" id="timer">0:00</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="sizes" id="sizes">
+      <button class="size" data-n="3">3×3<small>쉬움</small></button>
+      <button class="size on" data-n="4">4×4<small>기본</small></button>
+      <button class="size" data-n="5">5×5<small>어려움</small></button>
+    </div>
+
+    <div class="board-outer">
+      <div class="board" id="board"></div>
+      <div class="overlay" id="overlay">
+        <div class="big" id="ov-big">슬라이드 퍼즐</div>
+        <div class="sub" id="ov-sub">빈칸 옆 타일을 눌러 밀면서<br><b>1부터 순서대로</b> 맞추세요.</div>
+        <div class="ov-tier hidden" id="ov-tier"></div>
+        <div class="ov-title hidden" id="ov-title"></div>
+        <div class="ov-final hidden" id="ov-final">완성 시간<b id="ov-time">0:00</b></div>
+        <div class="ov-stat hidden" id="ov-stat"></div>
+        <div class="ov-pct hidden" id="ov-pct"></div>
+        <div class="ov-actions">
+          <button class="btn-primary" id="startBtn">시작</button>
+          <button class="btn-ghost hidden" id="shareBtn">결과 복사</button>
+        </div>
+        <div class="ov-note hidden" id="ov-note">* 상위 %는 재미로 보는 추정치예요.</div>
+      </div>
+    </div>
+
+    <div class="tools">
+      <button class="tool" id="newBtn">새 게임</button>
+      <button class="tool" id="numBtn">번호 보기</button>
+    </div>
+
+    <!-- ▼▼▼ 애드센스 코드는 여기 안에 붙여넣으세요 (승인 후) ▼▼▼ -->
+    <div class="ad-slot" id="ad-slot"></div>
+    <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
+
+    <section class="content">
+      <h2>게임 방법</h2>
+      <p>
+        칸 하나가 비어 있는 판에서 <b>빈칸과 붙어 있는 타일을 눌러</b> 밀어 넣습니다.
+        이걸 반복해 <b>1부터 순서대로, 빈칸은 맨 마지막에</b> 오도록 정렬하면 완성입니다.
+      </p>
+      <p>
+        같은 줄에 있는 타일을 누르면 <b>그 사이의 타일이 한 번에 밀립니다.</b>
+        한 칸씩 누르지 않아도 되니 훨씬 빠릅니다. PC에서는 방향키로도 조작할 수 있고,
+        휴대폰에서는 화면을 쓸어도 됩니다. 제자리에 들어간 타일은 색이 바뀌어 진행 상황을 알 수 있습니다.
+      </p>
+
+      <h3>푸는 순서 — 위에서 아래로, 왼쪽에서 오른쪽으로</h3>
+      <p>
+        아무 데나 손대면 맞춰 놓은 타일이 다시 흐트러집니다. <b>맞춘 부분은 건드리지 않는 순서</b>로 진행해야 합니다.
+      </p>
+      <ol>
+        <li><b>맨 윗줄을 완성합니다.</b> 4×4라면 1, 2, 3, 4를 차례로 제자리에 넣습니다.</li>
+        <li><b>맨 왼쪽 줄을 완성합니다.</b> 이제 위쪽 한 줄과 왼쪽 한 줄이 고정됩니다.</li>
+        <li><b>남은 부분에서 같은 과정을 반복합니다.</b> 판이 한 겹씩 줄어듭니다.</li>
+        <li><b>마지막 2×2만 남으면</b> 돌리듯이 몇 번 움직이면 맞춰집니다.</li>
+      </ol>
+      <p>
+        각 단계를 구체적으로 어떻게 하는지는 <a href="/guide/slide/">슬라이드 퍼즐 푸는 법</a>에서 자세히 다룹니다.
+      </p>
+
+      <h3>줄의 마지막 두 개가 안 맞을 때</h3>
+      <p>
+        가장 많이 막히는 지점입니다. 예를 들어 윗줄의 3과 4를 넣으려는데 하나를 넣으면 다른 하나가 밀려나는 상황이죠.
+        이때는 <b>두 개를 따로 넣으려 하지 말고 한 묶음으로 넣어야</b> 합니다.
+        3을 원래 4의 자리에 두고, 4를 그 바로 아래에 둔 다음, 두 개를 함께 왼쪽으로 밀어 넣는 식입니다.
+        이 형태를 한 번 익혀두면 모든 줄에서 똑같이 쓸 수 있습니다.
+      </p>
+
+      <h3>절반은 애초에 풀 수 없습니다</h3>
+      <p>
+        슬라이드 퍼즐에는 유명한 수학적 사실이 있습니다. 타일을 아무렇게나 늘어놓으면
+        <b>그중 절반은 아무리 움직여도 절대 맞출 수 없는 배열</b>입니다.
+        1870년대에 이 성질을 이용해 "14와 15만 뒤바뀐 판을 맞추면 상금을 주겠다"는 현상금이 걸린 적이 있는데,
+        사실 그 배열은 수학적으로 풀 수 없는 것이어서 아무도 받아 가지 못했습니다.
+        (자세한 이야기는 <a href="/guide/puzzle-history/">퍼즐 게임은 어떻게 만들어졌을까</a>에서 다룹니다.)
+      </p>
+      <p>
+        그래서 이 게임은 숫자를 무작위로 섞지 않습니다.
+        <b>완성된 상태에서 실제로 가능한 움직임만 수백 번 되풀이해</b> 문제를 만듭니다.
+        어떤 판이 나오더라도 <b>반드시 풀 수 있다는 것이 보장</b>됩니다. 안 풀린다면 방법의 문제이지 판의 문제가 아닙니다.
+      </p>
+
+      <h3>기록에 대해</h3>
+      <p>
+        크기별로 최고 기록(가장 빠른 완성 시간)이 저장됩니다. 완성하면 시간에 따라 등급과
+        대략적인 상위 %가 표시되고, 사용한 이동 횟수도 함께 나옵니다.
+        같은 판을 더 적은 이동으로 푸는 것에 도전해 보셔도 재미있습니다.
+      </p>
+    </section>
+
+    <p class="more-title">다른 게임도 해보세요</p>
+    <nav class="more-nav">
+        <a href="/fuse/">숫자 합치기</a>
+        <a href="/sudoku/">스도쿠</a>
+        <a href="/sequence/">컬러 시퀀스</a>
+        <a href="/reaction/">반응속도</a>
+        <a href="/color-spot/">색 찾기</a>
+        <a href="/math/">빠른 암산</a>
+    </nav>
+
+    <footer>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="/">홈</a><span style="opacity:.4">·</span>
+        <a href="/guide/">공략</a><span style="opacity:.4">·</span>
+        <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
+        <a href="../about.html">소개</a><span style="opacity:.4">·</span>
+        <a href="../privacy.html">개인정보처리방침</a>
+      </div>
+      © <span id="fyear"></span> Fuse. 무료 퍼즐 게임.
+    </footer>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const boardEl  = document.getElementById('board');
+  const movesEl  = document.getElementById('moves');
+  const timerEl  = document.getElementById('timer');
+  const sizesEl  = document.getElementById('sizes');
+  const overlay  = document.getElementById('overlay');
+  const ovBig    = document.getElementById('ov-big');
+  const ovSub    = document.getElementById('ov-sub');
+  const ovTier   = document.getElementById('ov-tier');
+  const ovTitle  = document.getElementById('ov-title');
+  const ovFinal  = document.getElementById('ov-final');
+  const ovTime   = document.getElementById('ov-time');
+  const ovStat   = document.getElementById('ov-stat');
+  const ovPct    = document.getElementById('ov-pct');
+  const ovNote   = document.getElementById('ov-note');
+  const startBtn = document.getElementById('startBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const newBtn   = document.getElementById('newBtn');
+  const numBtn   = document.getElementById('numBtn');
+  document.getElementById('fyear').textContent = new Date().getFullYear();
+
+  // --- 저장소: try-catch + 메모리 폴백 ---
+  const store = (() => {
+    let mem = {};
+    try {
+      const k = '__slide_test';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return {
+        get: k => localStorage.getItem(k),
+        set: (k, v) => localStorage.setItem(k, v)
+      };
+    } catch {
+      return {
+        get: k => (k in mem ? mem[k] : null),
+        set: (k, v) => { mem[k] = String(v); }
+      };
+    }
+  })();
+
+  // ===== 상태 =====
+  let n = 4;                 // 판 크기 (n×n)
+  let tiles = [];            // tiles[위치] = 타일 번호 (0 = 빈칸)
+  let blank = 0;             // 빈칸의 위치
+  let moves = 0;
+  let elapsed = 0;
+  let running = false;
+  let tickId = null;
+  let showNums = true;
+  const tileEls = new Map(); // 타일 번호 → DOM 요소
+
+  const bestKey = size => 'slide_best_' + size;
+
+  // ===== 등급/상위% (크기별 완성 시간 기준) =====
+  const TIER_TABLE = {
+    3: [25, 40, 60, 90, 140],
+    4: [90, 140, 210, 320, 480],
+    5: [240, 380, 560, 820, 1200]
+  };
+  const TIERS = [
+    { emoji:'🧠', title:'슬라이드 마스터' },
+    { emoji:'🏆', title:'고수' },
+    { emoji:'💎', title:'전문가' },
+    { emoji:'🥇', title:'숙련' },
+    { emoji:'🥈', title:'견습' },
+    { emoji:'🥉', title:'초보' }
+  ];
+  const PCTS = [4, 12, 28, 50, 72, 90];
+  const tierFor = (sec, size) => {
+    const t = TIER_TABLE[size];
+    for (let i = 0; i < t.length; i++) if (sec <= t[i]) return TIERS[i];
+    return TIERS[5];
+  };
+  const percentileFor = (sec, size) => {
+    const t = TIER_TABLE[size];
+    for (let i = 0; i < t.length; i++) if (sec <= t[i]) return PCTS[i];
+    return PCTS[5];
+  };
+
+  const fmtTime = (sec) => {
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return m + ':' + String(s).padStart(2, '0');
+  };
+
+  // ===== 판 만들기 =====
+  // 무작위 배열은 절반이 풀 수 없는 상태가 된다.
+  // 그래서 완성 상태에서 '실제로 가능한 이동'만 반복해 섞는다 → 항상 풀 수 있음이 보장된다.
+  const solvedState = () => {
+    const a = new Array(n * n);
+    for (let i = 0; i < n * n - 1; i++) a[i] = i + 1;
+    a[n * n - 1] = 0;
+    return a;
+  };
+
+  const neighborsOf = (pos) => {
+    const r = Math.floor(pos / n), c = pos % n;
+    const out = [];
+    if (r > 0) out.push(pos - n);
+    if (r < n - 1) out.push(pos + n);
+    if (c > 0) out.push(pos - 1);
+    if (c < n - 1) out.push(pos + 1);
+    return out;
+  };
+
+  const isSolved = () => {
+    for (let i = 0; i < n * n - 1; i++) if (tiles[i] !== i + 1) return false;
+    return tiles[n * n - 1] === 0;
+  };
+
+  const shuffle = () => {
+    tiles = solvedState();
+    blank = n * n - 1;
+    let prev = -1;
+    const steps = n * n * 40;              // 충분히 섞이도록
+    for (let i = 0; i < steps; i++) {
+      const nb = neighborsOf(blank).filter(p => p !== prev);   // 직전 수를 되돌리지 않는다
+      const pick = nb[Math.floor(Math.random() * nb.length)];
+      prev = blank;
+      tiles[blank] = tiles[pick];
+      tiles[pick] = 0;
+      blank = pick;
+    }
+    // 우연히 완성된 상태로 끝났다면 한 번 더
+    if (isSolved()) shuffle();
+  };
+
+  // ===== 렌더링 =====
+  const GAP = 2;                                   // % 단위
+  const cellSize = () => (100 - (n + 1) * GAP) / n;
+  const posOf = (idx) => {
+    const r = Math.floor(idx / n), c = idx % n;
+    const s = cellSize();
+    return { left: GAP + c * (s + GAP), top: GAP + r * (s + GAP) };
+  };
+
+  const buildBoard = () => {
+    boardEl.innerHTML = '';
+    tileEls.clear();
+    const s = cellSize();
+    for (let i = 0; i < n * n; i++) {
+      const v = tiles[i];
+      if (!v) continue;
+      const el = document.createElement('button');
+      el.className = 'tile';
+      el.style.width = s + '%';
+      el.style.height = s + '%';
+      el.style.fontSize = 'clamp(14px, ' + (34 / n) + 'vw, ' + (150 / n) + 'px)';
+      el.dataset.v = v;
+      el.textContent = showNums ? v : '';
+      el.setAttribute('aria-label', v + '번 타일');
+      boardEl.appendChild(el);
+      tileEls.set(v, el);
+    }
+    layout();
+  };
+
+  const layout = () => {
+    for (let i = 0; i < n * n; i++) {
+      const v = tiles[i];
+      if (!v) continue;
+      const el = tileEls.get(v);
+      const p = posOf(i);
+      el.style.left = p.left + '%';
+      el.style.top = p.top + '%';
+      el.classList.toggle('ok', v === i + 1);
+      el.classList.toggle('movable', neighborsOf(blank).includes(i));
+    }
+    movesEl.textContent = moves;
+  };
+
+  // ===== 이동 =====
+  // 빈칸과 같은 줄에 있는 타일을 누르면 그 사이 타일이 한꺼번에 밀린다.
+  const slideTo = (pos) => {
+    if (!running) return false;
+    const br = Math.floor(blank / n), bc = blank % n;
+    const pr = Math.floor(pos / n), pc = pos % n;
+    if (br !== pr && bc !== pc) return false;       // 같은 줄이 아니면 불가
+
+    let count = 0;
+    if (br === pr) {
+      const step = pc < bc ? -1 : 1;
+      for (let c = bc; c !== pc; c += step) {
+        tiles[br * n + c] = tiles[br * n + c + step];
+        count++;
+      }
+    } else {
+      const step = pr < br ? -1 : 1;
+      for (let r = br; r !== pr; r += step) {
+        tiles[r * n + bc] = tiles[(r + step) * n + bc];
+        count++;
+      }
+    }
+    tiles[pos] = 0;
+    blank = pos;
+    moves += count;
+    layout();
+    if (isSolved()) finish();
+    return true;
+  };
+
+  // 방향키/스와이프: 그 방향에서 빈칸으로 들어올 타일을 민다
+  const slideDir = (dir) => {
+    const r = Math.floor(blank / n), c = blank % n;
+    let target = -1;
+    if (dir === 'up'    && r < n - 1) target = blank + n;   // 아래 타일이 위로 이동
+    if (dir === 'down'  && r > 0)     target = blank - n;
+    if (dir === 'left'  && c < n - 1) target = blank + 1;
+    if (dir === 'right' && c > 0)     target = blank - 1;
+    if (target >= 0) slideTo(target);
+  };
+
+  // ===== 타이머 =====
+  const startTimer = () => {
+    clearInterval(tickId);
+    tickId = setInterval(() => {
+      if (!running) return;
+      elapsed++;
+      timerEl.textContent = fmtTime(elapsed);
+    }, 1000);
+  };
+
+  // ===== 완성 =====
+  const finish = () => {
+    running = false;
+    clearInterval(tickId);
+    layout();
+
+    const bk = bestKey(n);
+    const prevBest = parseInt(store.get(bk), 10);
+    const isNewBest = !Number.isFinite(prevBest) || elapsed < prevBest;
+    if (isNewBest) store.set(bk, elapsed);
+
+    const tier = tierFor(elapsed, n);
+    const pct = percentileFor(elapsed, n);
+    ovBig.textContent = '완성!';
+    ovSub.classList.add('hidden');
+    ovTier.textContent = tier.emoji;
+    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
+    ovTime.textContent = fmtTime(elapsed);
+    ovStat.textContent = `${n}×${n} · 이동 ${moves}회`;
+    ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
+    startBtn.textContent = '새 게임';
+    overlay.classList.remove('hidden');
+  };
+
+  const shareResult = async () => {
+    const tier = tierFor(elapsed, n);
+    const pct = percentileFor(elapsed, n);
+    const text = `슬라이드 퍼즐 ${n}×${n} ${fmtTime(elapsed)} 완성! (이동 ${moves}회) ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/slide/`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        shareBtn.textContent = '복사됨!';
+        setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
+      }
+    } catch {}
+  };
+
+  // ===== 새 게임 =====
+  const newGame = () => {
+    shuffle();
+    moves = 0;
+    elapsed = 0;
+    timerEl.textContent = '0:00';
+    running = true;
+    overlay.classList.add('hidden');
+    ovSub.classList.remove('hidden');
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
+    buildBoard();
+    startTimer();
+  };
+
+  // ===== 입력 =====
+  boardEl.addEventListener('click', (e) => {
+    const el = e.target.closest('.tile');
+    if (!el) return;
+    const v = +el.dataset.v;
+    const pos = tiles.indexOf(v);
+    slideTo(pos);
+  });
+
+  sizesEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.size');
+    if (!btn) return;
+    n = +btn.dataset.n;
+    [...sizesEl.children].forEach(b => b.classList.toggle('on', b === btn));
+    newGame();
+  });
+
+  startBtn.addEventListener('click', newGame);
+  newBtn.addEventListener('click', newGame);
+  shareBtn.addEventListener('click', shareResult);
+  numBtn.addEventListener('click', () => {
+    showNums = !showNums;
+    numBtn.textContent = showNums ? '번호 숨기기' : '번호 보기';
+    tileEls.forEach((el, v) => { el.textContent = showNums ? v : ''; });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!running) return;
+    const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+    if (e.key in map) { e.preventDefault(); slideDir(map[e.key]); }
+  });
+
+  // 스와이프
+  let sx = 0, sy = 0, swiping = false;
+  boardEl.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true;
+  }, { passive: true });
+  boardEl.addEventListener('touchend', (e) => {
+    if (!swiping) return;
+    swiping = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;    // 짧은 움직임은 탭으로 처리
+    e.preventDefault();
+    if (Math.abs(dx) > Math.abs(dy)) slideDir(dx > 0 ? 'right' : 'left');
+    else slideDir(dy > 0 ? 'down' : 'up');
+  }, { passive: false });
+
+  // ===== 초기화 =====
+  tiles = solvedState();
+  blank = n * n - 1;
+  buildBoard();
+  const b = parseInt(store.get(bestKey(n)), 10);
+  if (Number.isFinite(b)) {
+    ovSub.innerHTML = '빈칸 옆 타일을 눌러 밀면서 <b>1부터 순서대로</b> 맞추세요.<br>' +
+                      `${n}×${n} 최고 기록 <b>${fmtTime(b)}</b>`;
+  }
+})();
+</script>
+</body>
+</html>

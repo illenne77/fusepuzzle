@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>스도쿠 기초 풀이법 — 초보가 가장 먼저 익힐 다섯 가지 | Fuse</title>
+<meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
+     crossorigin="anonymous"></script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Fuse">
+<meta property="og:image" content="https://fusepuzzle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
+<link rel="canonical" href="https://fusepuzzle.com/guide/sudoku/">
+<meta property="og:url" content="https://fusepuzzle.com/guide/sudoku/">
+<meta property="og:title" content="스도쿠 기초 풀이법 — 초보가 가장 먼저 익힐 다섯 가지">
+<meta property="og:description" content="찍지 않고 논리로만 푸는 방법. 단일 후보, 숨은 단일, 후보 메모, 쌍 지우기까지 어려운 용어 없이 순서대로 익힐 수 있게 정리했습니다.">
+<meta name="description" content="스도쿠 기초 풀이법 정리. 단일 후보와 숨은 단일 찾기, 후보 메모 활용, 쌍으로 후보 지우기, 효율적인 스캔 순서까지 초보자가 논리만으로 푸는 법을 설명합니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="logo" href="/">Fuse</a>
+    <div class="links">
+      <a href="/how-to-play.html">게임 방법</a>
+      <a href="/guide/">공략·읽을거리</a>
+      <a href="/about.html">소개</a>
+      <a class="play" href="/sudoku/">게임하기</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>스도쿠 기초 풀이법</h1>
+    <p class="lead">
+      찍지 않고 논리로만 푸는 방법. 초보가 가장 먼저 익혀야 할 다섯 가지를 순서대로 정리했습니다.
+    </p>
+
+    <p>
+      스도쿠의 규칙은 한 줄로 끝납니다. <strong>가로줄·세로줄·3×3 칸에 1부터 9까지가 한 번씩만</strong> 들어가면 됩니다.
+      그런데 규칙을 알아도 막상 풀려고 하면 어디부터 손대야 할지 막막합니다.
+      스도쿠는 <strong>"어디를 봐야 하는지"를 아는 게임</strong>이기 때문입니다. 아래 순서대로 익히면 찍지 않고도 풀립니다.
+    </p>
+
+    <h2>1. 단일 후보 — 들어갈 수 있는 숫자가 하나뿐인 칸</h2>
+    <p>
+      가장 기본입니다. 빈칸 하나를 정하고, 그 칸이 속한 <strong>가로줄·세로줄·3×3 칸에 이미 있는 숫자를 모두 지웁니다.</strong>
+      남은 후보가 딱 하나면 그게 정답입니다.
+    </p>
+    <p>
+      예를 들어 어떤 칸의 가로줄에 <code>1 2 3</code>, 세로줄에 <code>4 5 6</code>, 3×3 칸에 <code>7 8</code>이 이미 있다면
+      후보는 9 하나뿐입니다. 확실하니 바로 적으면 됩니다. 쉬움 난이도는 이 방법만으로 상당 부분이 풀립니다.
+    </p>
+
+    <h2>2. 숨은 단일 — 그 줄에서 이 숫자가 갈 곳이 한 칸뿐인 경우</h2>
+    <p>
+      1번과 방향이 반대입니다. 칸을 기준으로 보는 게 아니라 <strong>숫자를 기준으로</strong> 봅니다.
+    </p>
+    <p>
+      어떤 3×3 칸에 아직 <strong>7</strong>이 없다고 해봅시다. 그 칸의 빈칸이 세 개인데, 그중 두 곳은
+      같은 가로줄이나 세로줄에 이미 7이 있어서 들어갈 수 없다면 — <strong>남은 한 칸이 7의 자리</strong>입니다.
+      그 칸에는 7 말고 다른 후보도 있을 수 있지만 상관없습니다. 7이 갈 곳이 거기밖에 없으니 확정입니다.
+    </p>
+    <p>
+      초보가 가장 많이 놓치는 기법이자, 익히면 실력이 가장 크게 느는 기법입니다.
+      막혔다 싶으면 <strong>1부터 9까지 숫자를 하나씩 정해놓고</strong> "이 숫자가 이 칸에 들어갈 자리가 어디지?" 하고 훑어보세요.
+    </p>
+
+    <h2>3. 후보를 메모하기 — 머리로만 하지 않기</h2>
+    <p>
+      보통 난이도부터는 머릿속으로만 후보를 기억하기 어렵습니다. 이때 <strong>메모(연필) 기능</strong>을 씁니다.
+      각 빈칸에 가능한 후보 숫자를 작게 적어두는 것입니다.
+    </p>
+    <p>
+      메모의 진짜 가치는 적는 순간이 아니라 <strong>지우는 순간</strong>에 나옵니다.
+      어떤 칸에 5를 확정하면, 같은 줄과 같은 3×3 칸에 적어둔 5를 모두 지웁니다.
+      그 과정에서 후보가 하나만 남는 칸이 연쇄적으로 생기고, 거기서 다음 답이 나옵니다.
+      풀이가 술술 풀리는 구간은 대부분 이 연쇄에서 만들어집니다.
+    </p>
+
+    <h2>4. 쌍으로 후보 지우기</h2>
+    <p>
+      같은 줄(또는 같은 3×3 칸)에서 <strong>후보가 똑같이 두 개뿐인 칸이 두 개</strong> 나올 때가 있습니다.
+      예를 들어 두 칸 모두 후보가 <code>3, 7</code>뿐이라면 — 어느 쪽이 3이고 어느 쪽이 7인지는 아직 몰라도,
+      <strong>3과 7은 그 두 칸이 나눠 갖는다</strong>는 사실은 확정입니다.
+    </p>
+    <p>
+      따라서 <strong>같은 줄의 다른 칸에서는 3과 7을 후보에서 지울 수 있습니다.</strong>
+      직접 답을 알려주지는 않지만 후보를 크게 줄여줘서, 결국 1번이나 2번으로 풀리는 칸을 만들어냅니다.
+      어려움 난이도에서 막혔을 때 돌파구가 되는 경우가 많습니다.
+    </p>
+
+    <div class="ad-slot"></div>
+
+    <h2>5. 효율적인 스캔 순서</h2>
+    <p>
+      아무 데나 보는 게 아니라 <strong>확률이 높은 곳부터</strong> 봐야 시간이 줄어듭니다.
+    </p>
+    <ul>
+      <li><strong>숫자가 많이 채워진 줄·칸부터.</strong> 이미 7~8개가 찬 줄은 남은 칸의 후보가 거의 없어 바로 답이 나옵니다.</li>
+      <li><strong>많이 등장한 숫자부터.</strong> 판 전체에 이미 여섯 번 나온 숫자가 있다면, 그 숫자가 들어갈 나머지 자리는 크게 제한됩니다.</li>
+      <li><strong>3×3 칸 단위로 훑기.</strong> 가로·세로만 보는 것보다 3×3 칸을 기준으로 보면 숨은 단일이 훨씬 잘 보입니다.</li>
+    </ul>
+
+    <h2>절대 하지 말아야 할 것: 찍기</h2>
+    <p>
+      확신 없이 "아마 이거겠지" 하고 채우면 그 순간엔 진도가 나가는 것 같지만,
+      틀린 숫자 하나가 이후 판단을 전부 오염시킵니다. 한참 뒤에 모순이 발견되면
+      어디서부터 잘못됐는지 찾지 못해 처음부터 다시 풀어야 합니다.
+    </p>
+    <p>
+      제대로 만들어진 스도쿠는 <strong>정답이 하나뿐이고, 찍지 않고 논리만으로 풀 수 있게</strong> 설계되어 있습니다.
+      (Fuse의 스도쿠도 문제를 만들 때마다 정답이 유일한지 검사합니다.)
+      막혔다면 찍을 게 아니라 아직 안 써본 기법이 있다는 뜻입니다. 2번 숨은 단일부터 다시 훑어보세요.
+    </p>
+
+    <h2>실력이 늘고 있다는 신호</h2>
+    <ol>
+      <li>쉬움 난이도를 <strong>메모 없이</strong> 끝까지 풀 수 있다.</li>
+      <li>막혔을 때 아무 데나 보지 않고 <strong>숫자 기준으로 훑는 습관</strong>이 생겼다.</li>
+      <li>메모를 적을 때 <strong>지울 것을 염두에 두고</strong> 적게 된다.</li>
+      <li>어려움 난이도에서 <strong>쌍을 찾아 후보를 줄이는</strong> 판단이 나온다.</li>
+    </ol>
+
+    <div class="card">
+      <p style="margin:0">
+        바로 연습해 보세요. <a href="/sudoku/">스도쿠 게임 시작하기 →</a><br>
+        쉬움·보통·어려움 세 난이도와, 단계마다 조금씩 어려워지는 도전 모드가 있습니다.
+        중간에 나가도 진행 상황이 저장되니 편하게 시작하셔도 됩니다.
+      </p>
+    </div>
+
+    <h2>함께 읽으면 좋은 글</h2>
+    <ul>
+      <li><a href="/guide/2048/">숫자 합치기 공략 — 큰 수를 만드는 네 가지 원칙</a></li>
+      <li><a href="/guide/reaction-time/">반응속도 평균은 얼마일까 — 기록을 줄이는 방법</a></li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <div class="fnav">
+      <a href="/">홈</a><span class="sep">·</span>
+      <a href="/how-to-play.html">게임 방법</a><span class="sep">·</span>
+      <a href="/guide/">공략·읽을거리</a><span class="sep">·</span>
+      <a href="/about.html">소개</a><span class="sep">·</span>
+      <a href="/privacy.html">개인정보처리방침</a>
+    </div>
+    <div>© <span id="fyear"></span> Fuse. 무료 웹 퍼즐 게임 모음.</div>
+  </footer>
+
+</div>
+<script>document.getElementById('fyear').textContent=new Date().getFullYear();</script>
+</body>
+</html>

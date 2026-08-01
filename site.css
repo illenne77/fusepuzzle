@@ -55,6 +55,35 @@ main a{color:var(--accent);}
 }
 .updated{color:var(--muted); font-size:13px; margin-top:6px;}
 
+/* 게임 목록 카드 (허브) */
+.games{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:14px; margin:22px 0 8px;}
+.game-card{
+  display:flex; flex-direction:column; gap:8px; text-decoration:none;
+  background:var(--panel); border:1px solid rgba(255,255,255,.06);
+  border-radius:14px; padding:18px 18px 16px;
+  transition:transform .12s ease, border-color .15s ease, background .15s ease;
+}
+.game-card:hover{transform:translateY(-2px); border-color:rgba(91,140,255,.45); background:#20273a;}
+.game-card .thumb{display:flex; gap:5px; margin-bottom:2px;}
+.game-card .thumb i{width:16px; height:16px; border-radius:5px; display:block;}
+.game-card .name{font-size:18px; font-weight:700; color:var(--ink); letter-spacing:-.3px;}
+.game-card .desc{font-size:13.5px; color:var(--muted); line-height:1.55; flex:1;}
+.game-card .meta{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;}
+.game-card .tag{
+  font-size:11px; font-weight:600; color:var(--muted);
+  background:rgba(255,255,255,.05); border-radius:999px; padding:3px 9px;
+}
+
+/* 다른 게임 더 보기 (게임 페이지 하단용) */
+.more-games{
+  display:block; text-align:center; text-decoration:none;
+  background:var(--panel); border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--radius); padding:13px 16px; margin:18px 0 0;
+  color:var(--ink); font-size:14px; font-weight:600;
+  transition:background .15s ease, border-color .15s ease;
+}
+.more-games:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+
 /* 광고 자리 (승인 후 코드 삽입, 비어 있으면 안 보임) */
 .ad-slot{width:100%; margin:30px 0; text-align:center;}
 .ad-slot:empty{display:none;}

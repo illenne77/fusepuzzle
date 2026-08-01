@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>빠른 암산 — 30초 계산 챌린지 | Fuse</title>
+<meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
+     crossorigin="anonymous"></script>
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- 소셜 공유 (Open Graph / Twitter) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fuse">
+<meta property="og:image" content="https://fusepuzzle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
+<link rel="canonical" href="https://fusepuzzle.com/math/">
+<meta property="og:url" content="https://fusepuzzle.com/math/">
+<meta property="og:title" content="빠른 암산 — 30초 계산 챌린지 | Fuse">
+<meta property="og:description" content="30초 동안 최대한 많은 계산 문제를 푸는 두뇌 게임. 연속 정답 콤보로 점수를 올려보세요.">
+<meta name="description" content="30초 안에 덧셈·뺄셈·곱셈 문제를 최대한 많이 푸는 암산 게임. 설치 없이 바로 즐기는 무료 웹 두뇌 트레이닝.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10141f;
+    --panel:#1b2130;
+    --ink:#e8ecf4;
+    --muted:#8b93a7;
+    --accent:#5b8cff;
+    --accent-2:#8b5cf6;
+    --radius:10px;
+    --go:#37a86e;
+    --bad:#ee5a54;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.14), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(139,92,246,.12), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Outfit', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{width:100%; max-width:460px;}
+
+  header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .brand{display:flex; flex-direction:column;}
+  .logo{
+    font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:210px; line-height:1.4;}
+
+  .scores{display:flex; gap:8px;}
+  .score{
+    background:var(--panel); border-radius:var(--radius);
+    padding:8px 14px; min-width:64px; text-align:center;
+  }
+  .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
+  .score .val{font-size:22px; font-weight:700; line-height:1.1; margin-top:2px;}
+
+  /* 남은 시간 바 */
+  .timebar-wrap{
+    width:100%; height:10px; border-radius:999px;
+    background:var(--panel); overflow:hidden; margin-bottom:14px;
+  }
+  .timebar{
+    height:100%; width:100%; border-radius:999px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform-origin:left center;
+  }
+  .timebar.low{background:linear-gradient(90deg, #ee7a35, var(--bad));}
+
+  .board-outer{position:relative; width:100%;}
+  .board{
+    position:relative; width:100%; min-height:340px;
+    background:var(--panel); border-radius:16px; padding:20px 16px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    user-select:none;
+  }
+
+  .combo{
+    font-size:13px; font-weight:700; color:var(--muted);
+    min-height:20px; letter-spacing:.3px;
+  }
+  .combo.on{color:#eab308;}
+
+  .question{
+    font-size:46px; font-weight:800; line-height:1.1; letter-spacing:-1px;
+    margin:8px 0 18px; text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .question.correct{color:var(--go);}
+  .question.wrong{color:var(--bad); animation:shake .3s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-5px);}
+    75%{transform:translateX(5px);}
+  }
+
+  .choices{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%;
+  }
+  .choice{
+    font-family:inherit; font-size:24px; font-weight:700; color:var(--ink);
+    background:#262e42; border:1px solid rgba(255,255,255,.07);
+    border-radius:12px; padding:18px 10px; cursor:pointer;
+    font-variant-numeric:tabular-nums;
+    transition:transform .08s ease, background .12s ease;
+    touch-action:manipulation;
+  }
+  .choice:hover:not([disabled]){background:#2e3750;}
+  .choice:active:not([disabled]){transform:scale(.97);}
+  .choice:focus-visible{outline:3px solid var(--accent); outline-offset:2px;}
+  .choice.ok{background:var(--go); border-color:transparent; color:#fff;}
+  .choice.no{background:var(--bad); border-color:transparent; color:#fff;}
+
+  /* 시작 / 결과 오버레이 */
+  .overlay{
+    position:absolute; inset:0; border-radius:16px;
+    background:rgba(16,20,31,.92); backdrop-filter:blur(3px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px;
+  }
+  .hidden{display:none !important;}
+  .overlay .big{font-size:28px; font-weight:800; line-height:1.2;}
+  .overlay .sub{font-size:15px; color:var(--muted); line-height:1.5; margin-top:6px;}
+  .ov-tier{font-size:44px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
+  .ov-title{
+    font-size:24px; font-weight:800; line-height:1.15; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .ov-final{font-size:15px; color:var(--ink); margin-top:6px;}
+  .ov-final b{font-size:34px; font-weight:800; display:block; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .ov-stat{font-size:13px; color:var(--muted); margin-top:6px;}
+  .ov-pct{
+    font-size:15px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:999px; padding:6px 16px; margin-top:8px;
+  }
+  .ov-pct b{color:var(--accent);}
+  .ov-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .btn-primary{
+    font-family:inherit; font-weight:700; font-size:15px; color:#fff;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    border:none; border-radius:var(--radius); padding:12px 24px; cursor:pointer;
+    transition:filter .15s ease, transform .08s ease;
+  }
+  .btn-primary:hover{filter:brightness(1.05);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-primary:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .btn-ghost{
+    font-family:inherit; font-weight:600; font-size:14px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius); padding:12px 18px; cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  .btn-ghost:hover{background:#232b3d;}
+  .btn-ghost:active{transform:translateY(1px);}
+  .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
+
+
+  /* 페이지 본문 콘텐츠 */
+  .content{
+    font-size:14px; color:#cdd3e0; line-height:1.75;
+    background:var(--panel); border-radius:var(--radius);
+    padding:18px 18px 20px; margin-top:18px;
+  }
+  .content h2{font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  .content h3{font-size:14px; color:var(--accent); margin:18px 0 6px; font-weight:600;}
+  .content p{margin:0 0 12px;}
+  .content ul,.content ol{margin:0 0 12px; padding-left:20px;}
+  .content li{margin:5px 0;}
+  .content b,.content strong{color:var(--ink); font-weight:600;}
+  .content a{color:var(--accent);}
+  .more-nav{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:14px;
+  }
+  .more-nav a{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--panel); border:1px solid rgba(255,255,255,.07);
+    border-radius:var(--radius); padding:11px 8px;
+    color:var(--ink); font-size:13px; font-weight:600;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .more-nav a:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+  .more-title{font-size:13px; color:var(--muted); margin:18px 0 0; text-align:center;}
+
+  .ad-slot:empty{display:none;}
+  .ad-slot{margin:16px 0;}
+
+  footer{
+    font-size:13px; color:var(--muted); text-align:center;
+    margin-top:24px; line-height:1.6;
+  }
+  footer a{color:var(--ink); text-decoration:none; transition:color .2s;}
+  footer a:hover{color:var(--accent);}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+    .question.wrong{animation:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">빠른 암산</div>
+        <div class="tagline">30초 계산 챌린지</div>
+      </div>
+      <div class="scores">
+        <div class="score">
+          <div class="label">점수</div>
+          <div class="val" id="score">0</div>
+        </div>
+        <div class="score">
+          <div class="label">최고</div>
+          <div class="val" id="best">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="timebar-wrap" aria-hidden="true">
+      <div class="timebar" id="timebar"></div>
+    </div>
+
+    <div class="board-outer">
+      <div class="board">
+        <div class="combo" id="combo"></div>
+        <div class="question" id="question">7 + 8</div>
+        <div class="choices" id="choices"></div>
+      </div>
+
+      <div class="overlay" id="overlay">
+        <div class="big" id="ov-big">빠른 암산</div>
+        <div class="sub" id="ov-sub">30초 안에 문제를 최대한 많이 푸세요.<br>연속 정답이면 <b>콤보 보너스</b>가 붙습니다.</div>
+        <div class="ov-tier hidden" id="ov-tier"></div>
+        <div class="ov-title hidden" id="ov-title"></div>
+        <div class="ov-final hidden" id="ov-final">최종 점수<b id="ov-score">0</b></div>
+        <div class="ov-stat hidden" id="ov-stat"></div>
+        <div class="ov-pct hidden" id="ov-pct"></div>
+        <div class="ov-actions">
+          <button class="btn-primary" id="startBtn">시작</button>
+          <button class="btn-ghost hidden" id="shareBtn">결과 복사</button>
+        </div>
+        <div class="ov-note hidden" id="ov-note">* 상위 %는 재미로 보는 추정치예요.</div>
+      </div>
+    </div>
+
+    <!-- ▼▼▼ 애드센스 코드는 여기 안에 붙여넣으세요 (승인 후) ▼▼▼ -->
+    <div class="ad-slot" id="ad-slot"></div>
+    <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
+
+    <section class="content">
+      <h2>게임 방법</h2>
+      <p>
+        제한 시간 안에 <b>사칙연산 문제를 최대한 많이</b> 풀어내는 게임입니다.
+        문제가 하나씩 나오면 답을 입력하세요. 맞히면 다음 문제로 넘어가고, 연속으로 맞히면 <b>콤보</b>가 쌓입니다.
+      </p>
+      <p>
+        어렵게 꼬인 문제는 나오지 않습니다. 두 자리 안팎의 덧셈·뺄셈·곱셈·나눗셈이라,
+        계산 실력보다 <b>얼마나 빠르고 침착하게 처리하느냐</b>를 겨루는 쪽에 가깝습니다.
+      </p>
+
+      <h3>암산이 빨라지는 요령</h3>
+      <ul>
+        <li><b>큰 자리부터 계산하세요.</b> 47 + 38이면 40+30=70을 먼저 잡고 7+8=15를 더해 85로 갑니다. 종이에 쓸 때와 순서가 반대입니다.</li>
+        <li><b>10으로 만들어 계산하세요.</b> 8을 더할 땐 10을 더하고 2를 빼는 편이 빠릅니다. 곱셈도 마찬가지로 19×4는 20×4−4로 처리합니다.</li>
+        <li><b>구구단 밖도 쪼개세요.</b> 13×6은 (10×6)+(3×6)으로 나누면 암산 범위 안으로 들어옵니다.</li>
+        <li><b>답을 확신하면 바로 넘기세요.</b> 한 번 더 확인하는 습관이 시간을 가장 많이 잡아먹습니다.</li>
+      </ul>
+
+      <h3>왜 틀릴까</h3>
+      <p>
+        시간에 쫓기면 계산 자체보다 <b>입력에서</b> 실수가 많이 납니다. 답은 맞게 떠올렸는데 손가락이 다른 숫자를 누르는 식입니다.
+        속도를 조금 낮추더라도 정확하게 누르는 편이 결과적으로 점수가 높습니다.
+        콤보가 끊기면 손해가 크기 때문입니다.
+      </p>
+
+      <h3>기록에 대해</h3>
+      <p>
+        최고 점수는 브라우저에 저장되어 다음에 들어와도 남아 있습니다.
+        짧게 여러 번 하기 좋은 게임이라, 자투리 시간에 기록을 조금씩 갱신해 나가기에 적합합니다.
+        더 빠르게 계산하는 요령은 <a href="/guide/mental-math/">암산 빨리하는 법</a>에서 자세히 다룹니다.
+      </p>
+    </section>
+
+    <p class="more-title">다른 게임도 해보세요</p>
+    <nav class="more-nav">
+        <a href="/fuse/">숫자 합치기</a>
+        <a href="/sudoku/">스도쿠</a>
+        <a href="/sequence/">컬러 시퀀스</a>
+        <a href="/reaction/">반응속도</a>
+        <a href="/color-spot/">색 찾기</a>
+        <a href="/slide/">슬라이드</a>
+    </nav>
+
+    <footer>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="/">홈</a><span style="opacity:.4">·</span>
+        <a href="/guide/">공략</a><span style="opacity:.4">·</span>
+        <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
+        <a href="../about.html">소개</a><span style="opacity:.4">·</span>
+        <a href="../privacy.html">개인정보처리방침</a>
+      </div>
+      © <span id="fyear"></span> Fuse. 무료 퍼즐 게임.
+    </footer>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const questionEl = document.getElementById('question');
+  const choicesEl  = document.getElementById('choices');
+  const comboEl    = document.getElementById('combo');
+  const scoreEl    = document.getElementById('score');
+  const bestEl     = document.getElementById('best');
+  const timebar    = document.getElementById('timebar');
+  const overlay    = document.getElementById('overlay');
+  const ovBig      = document.getElementById('ov-big');
+  const ovSub      = document.getElementById('ov-sub');
+  const ovTier     = document.getElementById('ov-tier');
+  const ovTitle    = document.getElementById('ov-title');
+  const ovFinal    = document.getElementById('ov-final');
+  const ovScore    = document.getElementById('ov-score');
+  const ovStat     = document.getElementById('ov-stat');
+  const ovPct      = document.getElementById('ov-pct');
+  const ovNote     = document.getElementById('ov-note');
+  const startBtn   = document.getElementById('startBtn');
+  const shareBtn   = document.getElementById('shareBtn');
+  document.getElementById('fyear').textContent = new Date().getFullYear();
+
+  // --- 저장소: try-catch + 메모리 폴백 ---
+  const store = (() => {
+    let mem = {};
+    try {
+      const k = '__math_test';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return {
+        get: k => localStorage.getItem(k),
+        set: (k, v) => localStorage.setItem(k, v)
+      };
+    } catch {
+      return {
+        get: k => (k in mem ? mem[k] : null),
+        set: (k, v) => { mem[k] = String(v); }
+      };
+    }
+  })();
+
+  // --- 등급/칭호: 점수에 따라 ---
+  const tierFor = (s) => {
+    if (s >= 68) return { emoji:'🧠', title:'계산의 신' };
+    if (s >= 52) return { emoji:'🏆', title:'마스터' };
+    if (s >= 38) return { emoji:'💎', title:'전문가' };
+    if (s >= 26) return { emoji:'🥇', title:'숙련' };
+    if (s >= 14) return { emoji:'🥈', title:'견습' };
+    return { emoji:'🥉', title:'초보' };
+  };
+
+  // --- 상위 %: 점수 구간별 추정(재미용) ---
+  const percentileFor = (s) => {
+    if (s <= 7)  return 95;
+    if (s <= 14) return 85;
+    if (s <= 22) return 68;
+    if (s <= 31) return 48;
+    if (s <= 42) return 30;
+    if (s <= 55) return 15;
+    if (s <= 70) return 6;
+    return 2;
+  };
+
+  // --- 파라미터 ---
+  const TOTAL_TIME = 30;    // 제한시간(초)
+  const PENALTY = 2;        // 오답 시 시간 감소(초)
+
+  let score = 0;
+  let solved = 0;           // 맞힌 문제 수
+  let missed = 0;           // 틀린 문제 수
+  let combo = 0;
+  let maxCombo = 0;
+  let timeLeft = TOTAL_TIME;
+  let running = false;
+  let locked = false;       // 정답 피드백 중 중복 입력 방지
+  let answer = 0;
+  let rafId = null;
+  let lastT = 0;
+
+  let best = parseInt(store.get('math_best'), 10);
+  if (!Number.isFinite(best)) best = 0;
+  bestEl.textContent = best;
+
+  const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+
+  // 문제 생성: 맞힌 개수가 늘수록 난이도 상승
+  const makeQuestion = () => {
+    const lv = Math.min(4, Math.floor(solved / 6));   // 0~4 난이도 구간
+    const ops = lv === 0 ? ['+', '-'] : (lv < 3 ? ['+', '-', '×'] : ['+', '-', '×']);
+    const op = ops[randInt(0, ops.length - 1)];
+    let a, b, ans;
+
+    if (op === '×') {
+      a = randInt(2, lv < 3 ? 9 : 12);
+      b = randInt(2, lv < 3 ? 9 : 12);
+      ans = a * b;
+    } else if (op === '+') {
+      const max = [20, 40, 70, 99, 150][lv];
+      a = randInt(2, max); b = randInt(2, max);
+      ans = a + b;
+    } else {
+      const max = [20, 40, 70, 99, 150][lv];
+      a = randInt(5, max); b = randInt(2, a);        // 음수 방지
+      ans = a - b;
+    }
+    return { text: `${a} ${op} ${b}`, ans };
+  };
+
+  // 정답 주변의 그럴듯한 오답 3개 생성
+  const makeChoices = (ans) => {
+    const set = new Set([ans]);
+    let guard = 0;
+    while (set.size < 4 && guard++ < 50) {
+      const spread = Math.max(2, Math.round(Math.abs(ans) * 0.12));
+      let cand = ans + randInt(-spread - 3, spread + 3);
+      if (cand === ans || cand < 0) continue;
+      set.add(cand);
+    }
+    // 극단적 상황 대비(중복/음수로 못 채운 경우)
+    let filler = ans + 1;
+    while (set.size < 4) { if (filler >= 0) set.add(filler); filler++; }
+
+    const arr = [...set];
+    // Fisher-Yates 셔플
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = randInt(0, i);
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  const renderCombo = () => {
+    if (combo >= 2) {
+      comboEl.textContent = `🔥 ${combo} 콤보`;
+      comboEl.classList.add('on');
+    } else {
+      comboEl.textContent = '';
+      comboEl.classList.remove('on');
+    }
+  };
+
+  const nextQuestion = () => {
+    const q = makeQuestion();
+    answer = q.ans;
+    questionEl.textContent = q.text;
+    questionEl.className = 'question';
+    choicesEl.innerHTML = makeChoices(q.ans)
+      .map(v => `<button class="choice" data-v="${v}">${v}</button>`)
+      .join('');
+    locked = false;
+  };
+
+  const updateBar = () => {
+    const ratio = Math.max(0, Math.min(1, timeLeft / TOTAL_TIME));
+    timebar.style.transform = `scaleX(${ratio})`;
+    timebar.classList.toggle('low', ratio < 0.3);
+  };
+
+  const loop = (t) => {
+    if (!running) return;
+    if (!lastT) lastT = t;
+    timeLeft -= (t - lastT) / 1000;
+    lastT = t;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      updateBar();
+      finish();
+      return;
+    }
+    updateBar();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  const onChoice = (e) => {
+    if (!running || locked) return;
+    const btn = e.target.closest('.choice');
+    if (!btn) return;
+    locked = true;
+
+    const picked = parseInt(btn.dataset.v, 10);
+    if (picked === answer) {
+      // 정답: 콤보가 쌓일수록 보너스 점수(최대 +3)
+      combo++;
+      maxCombo = Math.max(maxCombo, combo);
+      solved++;
+      score += 1 + Math.min(2, Math.floor(combo / 4));
+      scoreEl.textContent = score;
+      btn.classList.add('ok');
+      questionEl.classList.add('correct');
+      renderCombo();
+      setTimeout(() => { if (running) nextQuestion(); }, 160);
+    } else {
+      // 오답: 콤보 리셋 + 시간 감소
+      combo = 0;
+      missed++;
+      renderCombo();
+      btn.classList.add('no');
+      questionEl.classList.add('wrong');
+      // 정답 위치도 함께 표시해 학습 피드백
+      const okBtn = [...choicesEl.children].find(b => parseInt(b.dataset.v, 10) === answer);
+      if (okBtn) okBtn.classList.add('ok');
+      timeLeft -= PENALTY;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        updateBar();
+        finish();
+        return;
+      }
+      updateBar();
+      setTimeout(() => { if (running) nextQuestion(); }, 420);
+    }
+  };
+
+  const finish = () => {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null; lastT = 0;
+
+    const isNewBest = score > best;
+    if (isNewBest) {
+      best = score;
+      store.set('math_best', best);
+      bestEl.textContent = best;
+    }
+
+    const tier = tierFor(score);
+    const pct = percentileFor(score);
+    ovBig.textContent = '시간 종료!';
+    ovSub.classList.add('hidden');
+    ovTier.textContent = tier.emoji;
+    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
+    ovScore.textContent = score;
+    ovStat.textContent = `맞힘 ${solved}문제 · 최대 ${maxCombo} 콤보`;
+    ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
+    startBtn.textContent = '다시 하기';
+    overlay.classList.remove('hidden');
+  };
+
+  // 결과 공유(Web Share 우선, 미지원 시 클립보드 복사)
+  const shareResult = async () => {
+    const tier = tierFor(score);
+    const pct = percentileFor(score);
+    const text = `빠른 암산 30초에 ${score}점! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/math/`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        shareBtn.textContent = '복사됨!';
+        setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
+      }
+    } catch {}
+  };
+
+  const startGame = () => {
+    score = 0; solved = 0; missed = 0; combo = 0; maxCombo = 0;
+    timeLeft = TOTAL_TIME;
+    running = true; locked = false; lastT = 0;
+    scoreEl.textContent = '0';
+    renderCombo();
+    overlay.classList.add('hidden');
+    ovSub.classList.remove('hidden');
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
+    updateBar();
+    nextQuestion();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  choicesEl.addEventListener('click', onChoice);
+  startBtn.addEventListener('click', startGame);
+  shareBtn.addEventListener('click', shareResult);
+
+  // 키보드: 1~4로 보기 선택
+  document.addEventListener('keydown', (e) => {
+    if (!running || locked) return;
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 4) {
+      const btn = choicesEl.children[n - 1];
+      if (btn) { e.preventDefault(); onChoice({ target: btn }); }
+    }
+  });
+
+  updateBar();
+})();
+</script>
+</body>
+</html>
