@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>색 찾기 — 다른 색 하나 찾기 게임 | Fuse</title>
+<meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
+     crossorigin="anonymous"></script>
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- 소셜 공유 (Open Graph / Twitter) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fuse">
+<meta property="og:image" content="https://fusepuzzle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
+<link rel="canonical" href="https://fusepuzzle.com/color-spot/">
+<meta property="og:url" content="https://fusepuzzle.com/color-spot/">
+<meta property="og:title" content="색 찾기 — 다른 색 하나 찾기 게임 | Fuse">
+<meta property="og:description" content="거의 같은 색 타일 사이에서 다른 색 하나를 찾는 순간 집중력 게임. 단계가 오를수록 색 차이가 줄어듭니다.">
+<meta name="description" content="비슷한 색 타일 중 미묘하게 다른 하나를 빠르게 찾는 집중력·지각력 게임. 설치 없이 즐기는 무료 웹 색 찾기.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10141f;
+    --panel:#1b2130;
+    --ink:#e8ecf4;
+    --muted:#8b93a7;
+    --accent:#5b8cff;
+    --accent-2:#8b5cf6;
+    --radius:10px;
+    --go:#37a86e;
+    --bad:#ee5a54;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.14), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(139,92,246,.12), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Outfit', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{width:100%; max-width:460px;}
+
+  header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .brand{display:flex; flex-direction:column;}
+  .logo{
+    font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:210px; line-height:1.4;}
+
+  .scores{display:flex; gap:8px;}
+  .score{
+    background:var(--panel); border-radius:var(--radius);
+    padding:8px 14px; min-width:64px; text-align:center;
+  }
+  .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
+  .score .val{font-size:22px; font-weight:700; line-height:1.1; margin-top:2px;}
+
+  /* 남은 시간 바 */
+  .timebar-wrap{
+    width:100%; height:10px; border-radius:999px;
+    background:var(--panel); overflow:hidden; margin-bottom:14px;
+  }
+  .timebar{
+    height:100%; width:100%; border-radius:999px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform-origin:left center;
+  }
+  .timebar.low{background:linear-gradient(90deg, #ee7a35, var(--bad));}
+
+  .board-outer{position:relative; width:100%;}
+  .board{
+    position:relative; width:100%; aspect-ratio:1/1;
+    background:var(--panel); border-radius:16px; padding:10px;
+    display:grid; gap:8px;
+    user-select:none; touch-action:manipulation;
+  }
+  .tile{
+    border:none; padding:0; margin:0; width:100%; height:100%;
+    border-radius:10px; cursor:pointer;
+    transition:transform .06s ease;
+  }
+  .tile:active{transform:scale(.94);}
+  .tile:focus-visible{outline:3px solid #fff; outline-offset:-3px;}
+  .tile.wrong{animation:shake .3s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-4px);}
+    75%{transform:translateX(4px);}
+  }
+
+  /* 시작 / 게임오버 오버레이 */
+  .overlay{
+    position:absolute; inset:0; border-radius:16px;
+    background:rgba(16,20,31,.88); backdrop-filter:blur(2px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px; gap:6px;
+  }
+  .hidden{display:none !important;}
+  .overlay .big{font-size:28px; font-weight:800; line-height:1.2;}
+  .overlay .sub{font-size:15px; color:var(--muted); line-height:1.5; margin-top:2px;}
+  .overlay .final{
+    font-size:15px; color:var(--ink); margin-top:6px;
+  }
+  .overlay .final b{font-size:34px; font-weight:800; display:block; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .overlay .ov-tier{font-size:44px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
+  .overlay .ov-title{
+    font-size:24px; font-weight:800; line-height:1.15; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .overlay .ov-pct{
+    font-size:15px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:999px; padding:6px 16px; margin-top:8px;
+  }
+  .overlay .ov-pct b{color:var(--accent);}
+  .ov-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .btn-primary{
+    font-family:inherit; font-weight:700; font-size:15px; color:#fff;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    border:none; border-radius:var(--radius); padding:12px 24px; cursor:pointer;
+    transition:filter .15s ease, transform .08s ease;
+  }
+  .btn-primary:hover{filter:brightness(1.05);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-primary:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .btn-ghost{
+    font-family:inherit; font-weight:600; font-size:14px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius); padding:12px 18px; cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  .btn-ghost:hover{background:#232b3d;}
+  .btn-ghost:active{transform:translateY(1px);}
+  .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
+
+  .ad-slot:empty{display:none;}
+  .ad-slot{margin:16px 0;}
+
+  footer{
+    font-size:13px; color:var(--muted); text-align:center;
+    margin-top:24px; line-height:1.6;
+  }
+  footer a{color:var(--ink); text-decoration:none; transition:color .2s;}
+  footer a:hover{color:var(--accent);}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+    .tile.wrong{animation:none; outline:3px solid var(--bad); outline-offset:-3px;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">색 찾기</div>
+        <div class="tagline">다른 색 하나를 빠르게!</div>
+      </div>
+      <div class="scores">
+        <div class="score">
+          <div class="label">점수</div>
+          <div class="val" id="score">0</div>
+        </div>
+        <div class="score">
+          <div class="label">최고</div>
+          <div class="val" id="best">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="timebar-wrap" aria-hidden="true">
+      <div class="timebar" id="timebar"></div>
+    </div>
+
+    <div class="board-outer">
+      <div class="board" id="board" aria-label="색 타일 격자"></div>
+      <div class="overlay" id="overlay">
+        <div class="big" id="ov-big">색 찾기</div>
+        <div class="sub" id="ov-sub">여러 타일 중 <b>딱 하나</b> 다른 색을 찾아 누르세요.<br>맞힐수록 색 차이가 줄고 시간이 채워집니다.</div>
+        <div class="ov-tier hidden" id="ov-tier"></div>
+        <div class="ov-title hidden" id="ov-title"></div>
+        <div class="final hidden" id="ov-final">최종 점수<b id="ov-score">0</b></div>
+        <div class="ov-pct hidden" id="ov-pct"></div>
+        <div class="ov-actions">
+          <button class="btn-primary" id="startBtn">시작</button>
+          <button class="btn-ghost hidden" id="shareBtn">결과 복사</button>
+        </div>
+        <div class="ov-note hidden" id="ov-note">* 상위 %는 재미로 보는 추정치예요.</div>
+      </div>
+    </div>
+
+    <!-- ▼▼▼ 애드센스 코드는 여기 안에 붙여넣으세요 (승인 후) ▼▼▼ -->
+    <div class="ad-slot" id="ad-slot"></div>
+    <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
+
+    <footer>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
+        <a href="../about.html">소개</a><span style="opacity:.4">·</span>
+        <a href="../privacy.html">개인정보처리방침</a>
+      </div>
+      © <span id="fyear"></span> Fuse. 무료 퍼즐 게임.
+    </footer>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const board    = document.getElementById('board');
+  const scoreEl  = document.getElementById('score');
+  const bestEl   = document.getElementById('best');
+  const timebar  = document.getElementById('timebar');
+  const overlay  = document.getElementById('overlay');
+  const ovBig    = document.getElementById('ov-big');
+  const ovSub    = document.getElementById('ov-sub');
+  const ovFinal  = document.getElementById('ov-final');
+  const ovScore  = document.getElementById('ov-score');
+  const ovTier   = document.getElementById('ov-tier');
+  const ovTitle  = document.getElementById('ov-title');
+  const ovPct    = document.getElementById('ov-pct');
+  const ovNote   = document.getElementById('ov-note');
+  const startBtn = document.getElementById('startBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  document.getElementById('fyear').textContent = new Date().getFullYear();
+
+  // --- 등급/칭호: 찾은 개수(점수)에 따라 ---
+  const tierFor = (s) => {
+    if (s >= 35) return { emoji:'🧠', title:'매의 눈' };
+    if (s >= 25) return { emoji:'🏆', title:'마스터' };
+    if (s >= 17) return { emoji:'💎', title:'전문가' };
+    if (s >= 11) return { emoji:'🥇', title:'숙련' };
+    if (s >= 6)  return { emoji:'🥈', title:'견습' };
+    return { emoji:'🥉', title:'초보' };
+  };
+
+  // --- 상위 %: 점수 구간별 추정(재미용). 점수 높을수록 상위 ---
+  const percentileFor = (s) => {
+    if (s <= 3)  return 95;
+    if (s <= 6)  return 85;
+    if (s <= 10) return 70;
+    if (s <= 15) return 50;
+    if (s <= 20) return 32;
+    if (s <= 26) return 18;
+    if (s <= 33) return 9;
+    if (s <= 40) return 4;
+    return 1.5;
+  };
+
+  // --- 저장소: try-catch + 메모리 폴백 ---
+  const store = (() => {
+    let mem = {};
+    try {
+      const k = '__colorspot_test';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return {
+        get: k => localStorage.getItem(k),
+        set: (k, v) => localStorage.setItem(k, v)
+      };
+    } catch {
+      return {
+        get: k => (k in mem ? mem[k] : null),
+        set: (k, v) => { mem[k] = String(v); }
+      };
+    }
+  })();
+
+  // --- 파라미터 ---
+  const START_TIME = 15;   // 시작 제한시간(초), 바 최대 기준
+  const BONUS = 1.0;       // 정답 시 시간 +
+  const PENALTY = 2.5;     // 오답 시 시간 -
+
+  let level = 0;
+  let score = 0;
+  let timeLeft = START_TIME;
+  let oddIndex = -1;
+  let running = false;
+  let rafId = null;
+  let lastT = 0;
+
+  let best = parseInt(store.get('colorspot_best'), 10);
+  if (!Number.isFinite(best)) best = 0;
+  bestEl.textContent = best;
+
+  // 난이도: 레벨이 오를수록 격자가 커지고(2→6), 색 차이(명도)가 줄어듦
+  const gridFor = lv => Math.min(6, 2 + Math.floor(lv / 2));
+  const deltaFor = lv => Math.max(5, 24 - lv * 1.3);
+
+  // 랜덤 색 한 쌍 생성(같은 색조, 명도만 delta만큼 차이)
+  const makeColors = (delta) => {
+    const h = Math.floor(Math.random() * 360);
+    const s = 58 + Math.random() * 12;              // 58~70%
+    let baseL = 48 + Math.random() * 14;            // 48~62%
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    let oddL = baseL + dir * delta;
+    // 명도 범위 클램프(너무 어둡거나 밝지 않게)
+    if (oddL < 26) { oddL = 26; baseL = oddL + delta; }
+    if (oddL > 82) { oddL = 82; baseL = oddL - delta; }
+    return {
+      base: `hsl(${h} ${s}% ${baseL}%)`,
+      odd:  `hsl(${h} ${s}% ${oddL}%)`
+    };
+  };
+
+  const renderStage = () => {
+    const n = gridFor(level);
+    const count = n * n;
+    const { base, odd } = makeColors(deltaFor(level));
+    oddIndex = Math.floor(Math.random() * count);
+
+    board.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    // 타일 크기가 커지면 gap도 살짝 줄여 균형
+    board.style.gap = (n >= 5 ? 6 : 8) + 'px';
+
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      const c = i === oddIndex ? odd : base;
+      html += `<button class="tile" style="background:${c}" data-i="${i}" aria-label="타일"></button>`;
+    }
+    board.innerHTML = html;
+  };
+
+  const updateBar = () => {
+    const ratio = Math.max(0, Math.min(1, timeLeft / START_TIME));
+    timebar.style.transform = `scaleX(${ratio})`;
+    timebar.classList.toggle('low', ratio < 0.3);
+  };
+
+  const loop = (t) => {
+    if (!running) return;
+    if (!lastT) lastT = t;
+    const dt = (t - lastT) / 1000;
+    lastT = t;
+    timeLeft -= dt;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      updateBar();
+      gameOver();
+      return;
+    }
+    updateBar();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  const onTileDown = (e) => {
+    if (!running) return;
+    const btn = e.target.closest('.tile');
+    if (!btn) return;
+    const i = parseInt(btn.dataset.i, 10);
+
+    if (i === oddIndex) {
+      // 정답
+      score++;
+      level++;
+      scoreEl.textContent = score;
+      timeLeft = Math.min(START_TIME, timeLeft + BONUS);
+      updateBar();
+      renderStage();
+    } else {
+      // 오답: 시간 감소 + 흔들림 피드백
+      timeLeft -= PENALTY;
+      btn.classList.add('wrong');
+      setTimeout(() => btn.classList.remove('wrong'), 300);
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        updateBar();
+        gameOver();
+      } else {
+        updateBar();
+      }
+    }
+  };
+
+  const gameOver = () => {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null; lastT = 0;
+
+    const isNewBest = score > best;
+    if (isNewBest) {
+      best = score;
+      store.set('colorspot_best', best);
+      bestEl.textContent = best;
+    }
+
+    // 결과 카드: 등급/칭호 + 상위 %
+    const tier = tierFor(score);
+    const pct = percentileFor(score);
+    ovBig.textContent = '게임 오버!';
+    ovSub.classList.add('hidden');
+    ovTier.textContent = tier.emoji;
+    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
+    ovScore.textContent = score;
+    ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
+    [ovTier, ovTitle, ovFinal, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
+    startBtn.textContent = '다시 하기';
+    overlay.classList.remove('hidden');
+  };
+
+  // 결과 공유(Web Share 우선, 미지원 시 클립보드 복사)
+  const shareResult = async () => {
+    const tier = tierFor(score);
+    const pct = percentileFor(score);
+    const text = `색 찾기 게임에서 ${score}개 발견! ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/color-spot/`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        shareBtn.textContent = '복사됨!';
+        setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
+      }
+    } catch {}
+  };
+
+  const startGame = () => {
+    level = 0;
+    score = 0;
+    timeLeft = START_TIME;
+    running = true;
+    lastT = 0;
+    scoreEl.textContent = '0';
+    overlay.classList.add('hidden');
+    ovSub.classList.remove('hidden');
+    [ovTier, ovTitle, ovFinal, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
+    updateBar();
+    renderStage();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  // 입력: pointerdown(마우스·터치 즉시 반응) + 클릭(키보드 접근성) 위임
+  board.addEventListener('pointerdown', onTileDown);
+  board.addEventListener('keydown', (e) => {
+    if ((e.code === 'Enter' || e.code === 'Space') && e.target.classList.contains('tile')) {
+      e.preventDefault();
+      onTileDown({ target: e.target });
+    }
+  });
+  startBtn.addEventListener('click', startGame);
+  shareBtn.addEventListener('click', shareResult);
+
+  updateBar();
+})();
+</script>
+</body>
+</html>
