@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>반응속도 테스트 — 순발력 측정 게임 | Fuse</title>
+<meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
+     crossorigin="anonymous"></script>
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- 소셜 공유 (Open Graph / Twitter) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fuse">
+<meta property="og:image" content="https://fusepuzzle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
+<link rel="canonical" href="https://fusepuzzle.com/reaction/">
+<meta property="og:url" content="https://fusepuzzle.com/reaction/">
+<meta property="og:title" content="반응속도 테스트 — 순발력 측정 게임 | Fuse">
+<meta property="og:description" content="초록불이 켜지는 순간 빠르게 눌러 반응속도를 측정하는 무료 웹 게임. 평균 반응속도(ms)로 순발력을 확인하세요.">
+<meta name="description" content="화면이 초록색으로 바뀌면 바로 눌러 반응속도를 측정하는 순발력 게임. 설치 없이 즐기는 무료 웹 반응속도 테스트.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10141f;
+    --panel:#1b2130;
+    --ink:#e8ecf4;
+    --muted:#8b93a7;
+    --accent:#5b8cff;
+    --accent-2:#8b5cf6;
+    --radius:10px;
+    --wait:#ee5a54;     /* 대기(빨강): 아직 누르면 안 됨 */
+    --go:#37a86e;       /* 신호(초록): 지금 눌러라 */
+    --early:#e89a2c;    /* 성급(주황): 너무 빨리 누름 */
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.14), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(139,92,246,.12), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Outfit', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{width:100%; max-width:460px;}
+
+  header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .brand{display:flex; flex-direction:column;}
+  .logo{
+    font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:210px; line-height:1.4;}
+
+  .scores{display:flex; gap:8px;}
+  .score{
+    background:var(--panel); border-radius:var(--radius);
+    padding:8px 14px; min-width:72px; text-align:center;
+  }
+  .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
+  .score .val{font-size:22px; font-weight:700; line-height:1.1; margin-top:2px;}
+  .score .val small{font-size:12px; font-weight:600; color:var(--muted);}
+
+  .board-outer{position:relative; width:100%;}
+  .board{
+    position:relative; width:100%; aspect-ratio:1/1;
+    border-radius:16px; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:20px;
+    cursor:pointer; user-select:none; touch-action:manipulation;
+    background:var(--panel);
+    transition:background .12s ease;
+  }
+  .board:focus-visible{outline:3px solid var(--accent); outline-offset:3px;}
+  .board.wait{background:var(--wait);}
+  .board.go{background:var(--go);}
+  .board.early{background:var(--early);}
+
+  .board .big{font-size:30px; font-weight:800; line-height:1.15; color:#fff;}
+  .board .sub{font-size:15px; font-weight:500; margin-top:10px; color:rgba(255,255,255,.9); line-height:1.5;}
+  .board.idle .big{color:var(--ink);}
+  .board.idle .sub{color:var(--muted);}
+  .board .ms{font-size:52px; font-weight:800; line-height:1; color:#fff;}
+  .board .ms small{font-size:22px; font-weight:600;}
+
+  /* 결과 등급/상위% */
+  .res-grade{
+    display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;
+    margin-top:12px;
+  }
+  .res-tier{font-size:26px; line-height:1;}
+  .res-title{font-size:18px; font-weight:800; color:var(--ink);}
+  .res-pct{
+    font-size:14px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.1);
+    border-radius:999px; padding:5px 12px;
+  }
+  .res-pct b{color:var(--accent);}
+  .res-note{font-size:13px; color:var(--muted); margin-top:12px;}
+  .res-note .best{color:#37a86e; font-weight:700;}
+
+  .avg-row{
+    display:flex; gap:8px; margin-top:14px; justify-content:center; flex-wrap:wrap;
+    min-height:20px;
+  }
+  .chip{
+    background:var(--panel); border-radius:999px;
+    padding:5px 12px; font-size:13px; font-weight:600; color:var(--muted);
+  }
+  .chip b{color:var(--ink); font-weight:700;}
+
+  .ad-slot:empty{display:none;}
+  .ad-slot{margin:16px 0;}
+
+  footer{
+    font-size:13px; color:var(--muted); text-align:center;
+    margin-top:24px; line-height:1.6;
+  }
+  footer a{color:var(--ink); text-decoration:none; transition:color .2s;}
+  footer a:hover{color:var(--accent);}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">반응속도</div>
+        <div class="tagline">초록불에 빠르게 탭!</div>
+      </div>
+      <div class="scores">
+        <div class="score">
+          <div class="label">이번</div>
+          <div class="val" id="last">-</div>
+        </div>
+        <div class="score">
+          <div class="label">최고</div>
+          <div class="val" id="best">-</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="board-outer">
+      <div class="board idle" id="board" role="button" tabindex="0" aria-label="반응속도 측정 영역">
+        <div class="big" id="big">시작하려면 탭</div>
+        <div class="sub" id="sub">초록색으로 바뀌는 순간 최대한 빠르게 누르세요.</div>
+      </div>
+    </div>
+
+    <div class="avg-row" id="avgRow"></div>
+
+    <!-- ▼▼▼ 애드센스 코드는 여기 안에 붙여넣으세요 (승인 후) ▼▼▼ -->
+    <div class="ad-slot" id="ad-slot"></div>
+    <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
+
+    <footer>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
+        <a href="../about.html">소개</a><span style="opacity:.4">·</span>
+        <a href="../privacy.html">개인정보처리방침</a>
+      </div>
+      © <span id="fyear"></span> Fuse. 무료 퍼즐 게임.
+    </footer>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const board  = document.getElementById('board');
+  const bigEl  = document.getElementById('big');
+  const subEl  = document.getElementById('sub');
+  const lastEl = document.getElementById('last');
+  const bestEl = document.getElementById('best');
+  const avgRow = document.getElementById('avgRow');
+  document.getElementById('fyear').textContent = new Date().getFullYear();
+
+  // --- 저장소: try-catch + 메모리 폴백 (샌드박스·프라이빗 모드 대응) ---
+  const store = (() => {
+    let mem = {};
+    try {
+      const k = '__reaction_test';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return {
+        get: k => localStorage.getItem(k),
+        set: (k, v) => localStorage.setItem(k, v)
+      };
+    } catch {
+      return {
+        get: k => (k in mem ? mem[k] : null),
+        set: (k, v) => { mem[k] = String(v); }
+      };
+    }
+  })();
+
+  // --- 상태 ---
+  // idle → waiting(빨강) → ready(초록) → result → (다시 탭) idle
+  let state = 'idle';
+  let timerId = null;
+  let startTime = 0;
+  const recent = [];               // 최근 반응속도 기록(최대 5개)
+
+  let best = parseInt(store.get('reaction_best'), 10);
+  if (Number.isFinite(best)) bestEl.innerHTML = best + '<small>ms</small>';
+
+  // 시간 측정은 monotonic clock(performance.now) 사용
+  const now = () => performance.now();
+
+  // --- 등급/칭호: 반응시간(ms)에 따라 (낮을수록 좋음) ---
+  const tierFor = (ms) => {
+    if (ms < 180) return { emoji:'🧠', title:'반응의 신' };
+    if (ms < 220) return { emoji:'🏆', title:'마스터' };
+    if (ms < 260) return { emoji:'💎', title:'전문가' };
+    if (ms < 300) return { emoji:'🥇', title:'숙련' };
+    if (ms < 350) return { emoji:'🥈', title:'견습' };
+    return { emoji:'🥉', title:'초보' };
+  };
+
+  // --- 상위 %: 반응시간 구간별 추정(재미용). ms 낮을수록 상위 ---
+  const percentileFor = (ms) => {
+    if (ms < 160) return 1;
+    if (ms < 180) return 3;
+    if (ms < 200) return 8;
+    if (ms < 220) return 18;
+    if (ms < 250) return 35;
+    if (ms < 280) return 55;
+    if (ms < 320) return 75;
+    return 90;
+  };
+
+  const setBoard = (cls, big, sub) => {
+    board.className = 'board ' + cls;
+    if (big !== undefined) bigEl.innerHTML = big;
+    if (sub !== undefined) subEl.innerHTML = sub;
+  };
+
+  const renderAvg = () => {
+    if (!recent.length) { avgRow.innerHTML = ''; return; }
+    const avg = Math.round(recent.reduce((a, b) => a + b, 0) / recent.length);
+    avgRow.innerHTML =
+      '<span class="chip">최근 <b>' + recent.length + '회</b></span>' +
+      '<span class="chip">평균 <b>' + avg + 'ms</b></span>';
+  };
+
+  const startWaiting = () => {
+    state = 'waiting';
+    setBoard('wait',
+      '준비…',
+      '초록색으로 바뀔 때까지 기다리세요.');
+    // 1.2 ~ 4.2초 사이 임의 대기 (예측 방지)
+    const delay = 1200 + Math.random() * 3000;
+    timerId = setTimeout(showGo, delay);
+  };
+
+  const showGo = () => {
+    state = 'ready';
+    startTime = now();
+    setBoard('go', '지금!', '눌러요!');
+  };
+
+  const recordResult = () => {
+    const ms = Math.round(now() - startTime);
+    state = 'result';
+
+    lastEl.innerHTML = ms + '<small>ms</small>';
+    recent.push(ms);
+    if (recent.length > 5) recent.shift();
+    renderAvg();
+
+    const isNewBest = !Number.isFinite(best) || ms < best;
+    if (isNewBest) {
+      best = ms;
+      store.set('reaction_best', best);
+      bestEl.innerHTML = best + '<small>ms</small>';
+    }
+
+    // 등급/칭호 + 상위 % 표시
+    const tier = tierFor(ms);
+    const pct = percentileFor(ms);
+    const note = (isNewBest ? '<span class="best">🎉 최고 기록!</span> ' : '') + '다시 하려면 탭하세요.';
+    const sub =
+      '<div class="res-grade">' +
+        '<span class="res-tier">' + tier.emoji + '</span>' +
+        '<span class="res-title">' + tier.title + '</span>' +
+        '<span class="res-pct">상위 <b>' + pct + '%</b></span>' +
+      '</div>' +
+      '<div class="res-note">' + note + '</div>';
+
+    setBoard('idle',
+      '<span class="ms">' + ms + '<small>ms</small></span>',
+      sub);
+  };
+
+  const tooSoon = () => {
+    // 초록불 전에 눌렀을 때: 이번 시도 취소
+    clearTimeout(timerId);
+    state = 'result';
+    setBoard('early',
+      '너무 빨라요!',
+      '초록색이 될 때까지 기다려야 해요.<br>다시 하려면 탭하세요.');
+  };
+
+  const handleInput = () => {
+    switch (state) {
+      case 'idle':
+      case 'result':
+        startWaiting();
+        break;
+      case 'waiting':
+        tooSoon();
+        break;
+      case 'ready':
+        recordResult();
+        break;
+    }
+  };
+
+  // 입력: 클릭 + 터치 + 키보드(스페이스/엔터). 터치는 클릭 중복 방지 위해 preventDefault.
+  board.addEventListener('mousedown', handleInput);
+  board.addEventListener('touchstart', e => { e.preventDefault(); handleInput(); }, { passive: false });
+  board.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      e.preventDefault();
+      handleInput();
+    }
+  });
+
+  renderAvg();
+})();
+</script>
+</body>
+</html>
