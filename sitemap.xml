@@ -102,6 +102,25 @@
     <priority>0.7</priority>
   </url>
 
+  <url>
+    <loc>https://fusepuzzle.com/guide/slide/</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fusepuzzle.com/guide/focus/</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fusepuzzle.com/guide/puzzle-history/</loc>
+    <lastmod>2026-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- 안내 페이지 -->
   <url>
     <loc>https://fusepuzzle.com/how-to-play.html</loc>
