@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>슬라이드 퍼즐 — 15 퍼즐 무료 온라인 게임 | Fuse</title>
+<title>짝 맞추기 — 카드 뒤집기 기억 게임 | Fuse</title>
 <meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
@@ -21,11 +21,11 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
-<link rel="canonical" href="https://fusepuzzle.com/slide/">
-<meta property="og:url" content="https://fusepuzzle.com/slide/">
-<meta property="og:title" content="슬라이드 퍼즐 — 15 퍼즐 무료 온라인 게임">
-<meta property="og:description" content="타일을 밀어 1부터 순서대로 맞추는 고전 퍼즐. 3×3·4×4·5×5 크기를 지원하며 반드시 풀 수 있는 문제만 나옵니다.">
-<meta name="description" content="타일을 밀어 숫자를 순서대로 맞추는 15 퍼즐(슬라이드 퍼즐). 3×3·4×4·5×5 크기 지원, 항상 풀 수 있는 배열만 출제되며 설치 없이 바로 즐길 수 있습니다.">
+<link rel="canonical" href="https://fusepuzzle.com/match/">
+<meta property="og:url" content="https://fusepuzzle.com/match/">
+<meta property="og:title" content="짝 맞추기 — 카드 뒤집기 기억 게임">
+<meta property="og:description" content="카드를 두 장씩 뒤집어 같은 그림을 찾는 고전 기억 게임. 6쌍·8쌍·12쌍 중에 고를 수 있고 시간과 뒤집은 횟수가 기록됩니다.">
+<meta name="description" content="카드를 뒤집어 같은 그림 짝을 찾는 기억력 게임. 6쌍·8쌍·12쌍 난이도를 지원하며 완성 시간과 뒤집은 횟수가 기록됩니다. 설치 없이 바로 즐기는 무료 웹 게임.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,8 +38,8 @@
     --accent:#5b8cff;
     --accent-2:#8b5cf6;
     --radius:10px;
-    --tile:#2a3348;
-    --tile-ok:#274058;   /* 제자리에 놓인 타일 */
+    --good:#37a86e;
+    --face:#262e42;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -60,21 +60,21 @@
   header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
   .brand{display:flex; flex-direction:column;}
   .logo{
-    margin:0; font-size:38px; font-weight:800; line-height:1; letter-spacing:-1px;
+    margin:0; font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
-  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:190px; line-height:1.4;}
+  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:200px; line-height:1.4;}
 
   .scores{display:flex; gap:8px;}
   .score{
     background:var(--panel); border-radius:var(--radius);
-    padding:8px 13px; min-width:66px; text-align:center;
+    padding:8px 12px; min-width:62px; text-align:center;
   }
   .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
   .score .val{font-size:20px; font-weight:700; line-height:1.1; margin-top:2px; font-variant-numeric:tabular-nums;}
 
-  /* 크기 선택 */
+  /* 난이도 */
   .sizes{display:flex; gap:6px; margin-bottom:12px;}
   .size{
     flex:1; font-family:inherit; font-weight:600; font-size:13px; color:var(--muted);
@@ -92,31 +92,53 @@
 
   .board-outer{position:relative; width:100%;}
   .board{
-    position:relative; width:100%; aspect-ratio:1/1;
-    background:var(--panel); border-radius:14px;
-    overflow:hidden; touch-action:none; user-select:none;
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
+    background:var(--panel); border-radius:16px; padding:10px;
+    user-select:none; touch-action:manipulation;
   }
-  .tile{
-    position:absolute; display:flex; align-items:center; justify-content:center;
-    background:var(--tile); border-radius:9px; cursor:pointer;
-    font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;
-    border:none; padding:0; font-family:inherit;
-    transition:left .13s ease, top .13s ease, background .15s ease;
+  .card{
+    position:relative; width:100%; aspect-ratio:3/4;
+    border:none; padding:0; margin:0; background:transparent; cursor:pointer;
+    perspective:600px;
   }
-  .tile:focus-visible{outline:2px solid #fff; outline-offset:-2px; z-index:3;}
-  .tile.ok{background:var(--tile-ok); color:#a9c4ff;}
-  .tile.movable:hover{filter:brightness(1.18);}
+  .card:focus-visible{outline:3px solid #fff; outline-offset:2px; border-radius:10px;}
+  .inner{
+    position:absolute; inset:0;
+    transform-style:preserve-3d;
+    transition:transform .3s ease;
+  }
+  .card.up .inner, .card.done .inner{transform:rotateY(180deg);}
+  .side{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:10px; backface-visibility:hidden;
+  }
+  .back{
+    background:linear-gradient(135deg, #2b344c, #333e5c);
+    border:1px solid rgba(255,255,255,.05);
+  }
+  .back::after{
+    content:''; width:34%; height:34%; border-radius:50%;
+    background:linear-gradient(135deg, rgba(91,140,255,.5), rgba(139,92,246,.5));
+  }
+  .front{
+    background:var(--face); transform:rotateY(180deg);
+    font-size:clamp(20px, 7vw, 34px); line-height:1;
+  }
+  .card.done .front{background:rgba(55,168,110,.28);}
+  .card.done{cursor:default;}
 
   /* 오버레이 */
   .overlay{
-    position:absolute; inset:0; border-radius:14px;
-    background:rgba(16,20,31,.93); backdrop-filter:blur(3px);
+    position:absolute; inset:0; border-radius:16px;
+    background:rgba(16,20,31,.94); backdrop-filter:blur(3px);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; padding:24px; z-index:5;
   }
   .hidden{display:none !important;}
   .overlay .big{font-size:26px; font-weight:800; line-height:1.2;}
   .overlay .sub{font-size:14px; color:var(--muted); line-height:1.6; margin-top:8px;}
+  .overlay .sub b{color:var(--ink);}
   .ov-tier{font-size:42px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
   .ov-title{
     font-size:23px; font-weight:800; line-height:1.15; margin-top:2px;
@@ -124,7 +146,7 @@
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .ov-final{font-size:14px; color:var(--ink); margin-top:6px;}
-  .ov-final b{font-size:30px; font-weight:800; display:block; margin-top:2px;
+  .ov-final b{font-size:32px; font-weight:800; display:block; margin-top:2px;
     font-variant-numeric:tabular-nums;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;}
@@ -203,6 +225,7 @@
 
   @media(prefers-reduced-motion:reduce){
     *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+    .inner{transition:none;}
   }
 </style>
 </head>
@@ -210,12 +233,12 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <h1 class="logo">슬라이드</h1>
-        <div class="tagline">밀어서 순서대로 맞추기</div>
+        <h1 class="logo">짝 맞추기</h1>
+        <div class="tagline">같은 그림 두 장을 찾으세요</div>
       </div>
       <div class="scores">
         <div class="score">
-          <div class="label">이동</div>
+          <div class="label">뒤집기</div>
           <div class="val" id="moves">0</div>
         </div>
         <div class="score">
@@ -226,16 +249,20 @@
     </header>
 
     <div class="sizes" id="sizes">
-      <button class="size" data-n="3">3×3<small>쉬움</small></button>
-      <button class="size on" data-n="4">4×4<small>기본</small></button>
-      <button class="size" data-n="5">5×5<small>어려움</small></button>
+      <button class="size" data-p="6">6쌍<small>쉬움</small></button>
+      <button class="size on" data-p="8">8쌍<small>기본</small></button>
+      <button class="size" data-p="12">12쌍<small>어려움</small></button>
     </div>
 
     <div class="board-outer">
       <div class="board" id="board"></div>
+
       <div class="overlay" id="overlay">
-        <div class="big" id="ov-big">슬라이드 퍼즐</div>
-        <div class="sub" id="ov-sub">빈칸 옆 타일을 눌러 밀면서<br><b>1부터 순서대로</b> 맞추세요.</div>
+        <div class="big" id="ov-big">짝 맞추기</div>
+        <div class="sub" id="ov-sub">
+          카드를 <b>두 장씩</b> 뒤집어 같은 그림을 찾으세요.<br>
+          모든 짝을 찾으면 끝납니다.
+        </div>
         <div class="ov-tier hidden" id="ov-tier"></div>
         <div class="ov-title hidden" id="ov-title"></div>
         <div class="ov-final hidden" id="ov-final">완성 시간<b id="ov-time">0:00</b></div>
@@ -251,7 +278,6 @@
 
     <div class="tools">
       <button class="tool" id="newBtn">새 게임</button>
-      <button class="tool" id="numBtn">번호 보기</button>
     </div>
 
     <!-- ▼▼▼ 애드센스 코드는 여기 안에 붙여넣으세요 (승인 후) ▼▼▼ -->
@@ -261,56 +287,45 @@
     <section class="content">
       <h2>게임 방법</h2>
       <p>
-        칸 하나가 비어 있는 판에서 <b>빈칸과 붙어 있는 타일을 눌러</b> 밀어 넣습니다.
-        이걸 반복해 <b>1부터 순서대로, 빈칸은 맨 마지막에</b> 오도록 정렬하면 완성입니다.
+        카드가 모두 뒷면으로 놓여 있습니다. <b>한 번에 두 장씩 뒤집어</b> 같은 그림인지 확인하세요.
+        두 장이 같으면 그대로 열린 채 남고, 다르면 잠깐 보여준 뒤 다시 덮입니다.
+        <b>모든 짝을 찾으면</b> 게임이 끝나고 걸린 시간과 뒤집은 횟수가 기록됩니다.
       </p>
       <p>
-        같은 줄에 있는 타일을 누르면 <b>그 사이의 타일이 한 번에 밀립니다.</b>
-        한 칸씩 누르지 않아도 되니 훨씬 빠릅니다. PC에서는 방향키로도 조작할 수 있고,
-        휴대폰에서는 화면을 쓸어도 됩니다. 제자리에 들어간 타일은 색이 바뀌어 진행 상황을 알 수 있습니다.
-      </p>
-
-      <h3>푸는 순서 — 위에서 아래로, 왼쪽에서 오른쪽으로</h3>
-      <p>
-        아무 데나 손대면 맞춰 놓은 타일이 다시 흐트러집니다. <b>맞춘 부분은 건드리지 않는 순서</b>로 진행해야 합니다.
-      </p>
-      <ol>
-        <li><b>맨 윗줄을 완성합니다.</b> 4×4라면 1, 2, 3, 4를 차례로 제자리에 넣습니다.</li>
-        <li><b>맨 왼쪽 줄을 완성합니다.</b> 이제 위쪽 한 줄과 왼쪽 한 줄이 고정됩니다.</li>
-        <li><b>남은 부분에서 같은 과정을 반복합니다.</b> 판이 한 겹씩 줄어듭니다.</li>
-        <li><b>마지막 2×2만 남으면</b> 돌리듯이 몇 번 움직이면 맞춰집니다.</li>
-      </ol>
-      <p>
-        각 단계를 구체적으로 어떻게 하는지는 <a href="/guide/slide/">슬라이드 퍼즐 푸는 법</a>에서 자세히 다룹니다.
+        난이도는 <b>6쌍 · 8쌍 · 12쌍</b> 중에 고를 수 있습니다.
+        처음이라면 6쌍으로 감을 잡고 8쌍으로 넘어가시는 걸 권합니다.
       </p>
 
-      <h3>줄의 마지막 두 개가 안 맞을 때</h3>
+      <h3>뒤집는 횟수를 줄이는 요령</h3>
+      <ul>
+        <li><b>위치와 그림을 함께 외우세요.</b> "고양이가 어디 있었지"보다 "왼쪽 위 두 번째가 고양이"처럼 자리와 묶어서 기억하는 편이 훨씬 잘 남습니다.</li>
+        <li><b>순서대로 여세요.</b> 아무 데나 뒤집으면 무엇을 봤는지 정리가 안 됩니다. 왼쪽 위부터 차례로 훑으면 이미 본 카드가 자연스럽게 정렬됩니다.</li>
+        <li><b>첫 장을 열기 전에 생각하세요.</b> 이미 본 그림 중 짝을 못 찾은 것이 있다면 그것부터 여는 게 이득입니다. 아무거나 열고 나서 후회하는 경우가 많습니다.</li>
+        <li><b>못 맞힌 두 장도 정보입니다.</b> 짝이 아니어서 덮였더라도 그 두 장의 위치는 알게 된 셈입니다. 다음에 같은 그림이 나오면 바로 연결하세요.</li>
+      </ul>
+
+      <h3>왜 뒤로 갈수록 쉬워질까</h3>
       <p>
-        가장 많이 막히는 지점입니다. 예를 들어 윗줄의 3과 4를 넣으려는데 하나를 넣으면 다른 하나가 밀려나는 상황이죠.
-        이때는 <b>두 개를 따로 넣으려 하지 말고 한 묶음으로 넣어야</b> 합니다.
-        3을 원래 4의 자리에 두고, 4를 그 바로 아래에 둔 다음, 두 개를 함께 왼쪽으로 밀어 넣는 식입니다.
-        이 형태를 한 번 익혀두면 모든 줄에서 똑같이 쓸 수 있습니다.
+        처음에는 아무 정보가 없어서 운에 기대게 되지만, 카드를 열수록 <b>아는 위치가 쌓여</b>
+        후반에는 거의 실수 없이 맞힐 수 있습니다. 그래서 이 게임의 실력은 초반에
+        <b>본 것을 얼마나 잃지 않고 들고 가느냐</b>에서 갈립니다.
+        12쌍에서 유난히 어렵게 느껴지는 이유도 기억해야 할 카드가 한 번에 늘어나기 때문입니다.
       </p>
 
-      <h3>절반은 애초에 풀 수 없습니다</h3>
+      <h3>다른 기억 게임과의 차이</h3>
       <p>
-        슬라이드 퍼즐에는 유명한 수학적 사실이 있습니다. 타일을 아무렇게나 늘어놓으면
-        <b>그중 절반은 아무리 움직여도 절대 맞출 수 없는 배열</b>입니다.
-        1870년대에 이 성질을 이용해 "14와 15만 뒤바뀐 판을 맞추면 상금을 주겠다"는 현상금이 걸린 적이 있는데,
-        사실 그 배열은 수학적으로 풀 수 없는 것이어서 아무도 받아 가지 못했습니다.
-        (자세한 이야기는 <a href="/guide/puzzle-history/">퍼즐 게임은 어떻게 만들어졌을까</a>에서 다룹니다.)
-      </p>
-      <p>
-        그래서 이 게임은 숫자를 무작위로 섞지 않습니다.
-        <b>완성된 상태에서 실제로 가능한 움직임만 수백 번 되풀이해</b> 문제를 만듭니다.
-        어떤 판이 나오더라도 <b>반드시 풀 수 있다는 것이 보장</b>됩니다. 안 풀린다면 방법의 문제이지 판의 문제가 아닙니다.
+        <a href="/sequence/">컬러 시퀀스</a>는 순서를, <a href="/pattern/">패턴 기억</a>은 위치를 외웁니다.
+        짝 맞추기는 <b>그림과 위치를 짝지어</b> 기억해야 해서 또 결이 다릅니다.
+        게다가 한 판이 몇 분씩 이어지기 때문에 <b>오래 붙들고 있는 능력</b>도 함께 쓰입니다.
+        기억 요령 자체가 궁금하다면 <a href="/guide/memory/">순서 기억력을 늘리는 훈련법</a>도 참고하세요.
       </p>
 
       <h3>기록에 대해</h3>
       <p>
-        크기별로 최고 기록(가장 빠른 완성 시간)이 저장됩니다. 완성하면 시간에 따라 등급과
-        대략적인 상위 %가 표시되고, 사용한 이동 횟수도 함께 나옵니다.
-        같은 판을 더 적은 이동으로 푸는 것에 도전해 보셔도 재미있습니다.
+        난이도별로 <b>가장 빠른 완성 시간</b>이 브라우저에 저장됩니다.
+        완성하면 시간에 따라 등급과 대략적인 상위 %가 표시되고, 뒤집은 횟수도 함께 나옵니다.
+        같은 판을 더 적은 횟수로 끝내는 것에 도전해 보셔도 재미있습니다.
+        이론상 최소 횟수는 짝 수의 두 배(8쌍이면 16번)인데, 실제로는 훨씬 많이 걸립니다.
       </p>
     </section>
 
@@ -322,9 +337,9 @@
         <a href="/reaction/">반응속도</a>
         <a href="/color-spot/">색 찾기</a>
         <a href="/math/">빠른 암산</a>
+        <a href="/slide/">슬라이드</a>
         <a href="/stroop/">색 글자</a>
         <a href="/pattern/">패턴 기억</a>
-        <a href="/match/">짝 맞추기</a>
     </nav>
 
     <footer>
@@ -360,14 +375,13 @@
   const startBtn = document.getElementById('startBtn');
   const shareBtn = document.getElementById('shareBtn');
   const newBtn   = document.getElementById('newBtn');
-  const numBtn   = document.getElementById('numBtn');
   document.getElementById('fyear').textContent = new Date().getFullYear();
 
   // --- 저장소: try-catch + 메모리 폴백 ---
   const store = (() => {
     let mem = {};
     try {
-      const k = '__slide_test';
+      const k = '__match_test';
       localStorage.setItem(k, '1');
       localStorage.removeItem(k);
       return {
@@ -382,178 +396,73 @@
     }
   })();
 
-  // ===== 상태 =====
-  let n = 4;                 // 판 크기 (n×n)
-  let tiles = [];            // tiles[위치] = 타일 번호 (0 = 빈칸)
-  let blank = 0;             // 빈칸의 위치
-  let moves = 0;
-  let elapsed = 0;
-  let running = false;
-  let tickId = null;
-  let showNums = true;
-  const tileEls = new Map(); // 타일 번호 → DOM 요소
+  // 서로 확실히 구분되는 그림 12종
+  const FACES = ['⭐','🍀','🔥','💧','🌙','⚡','🎈','🍋','🐢','🦋','🍩','🎲'];
 
-  const bestKey = size => 'slide_best_' + size;
+  const bestKey = p => 'match_best_' + p;
 
-  // ===== 등급/상위% (크기별 완성 시간 기준) =====
-  const TIER_TABLE = {
-    3: [25, 40, 60, 90, 140],
-    4: [90, 140, 210, 320, 480],
-    5: [240, 380, 560, 820, 1200]
-  };
+  // --- 등급/상위% (쌍 수별 완성 시간 기준) ---
   const TIERS = [
-    { emoji:'🧠', title:'슬라이드 마스터' },
+    { emoji:'🧠', title:'기억의 달인' },
     { emoji:'🏆', title:'고수' },
     { emoji:'💎', title:'전문가' },
     { emoji:'🥇', title:'숙련' },
     { emoji:'🥈', title:'견습' },
     { emoji:'🥉', title:'초보' }
   ];
+  const CUTS = {
+    6:  [20, 30, 42, 60, 85],
+    8:  [32, 46, 62, 85, 120],
+    12: [60, 85, 115, 155, 210]
+  };
   const PCTS = [4, 12, 28, 50, 72, 90];
-  const tierFor = (sec, size) => {
-    const t = TIER_TABLE[size];
-    for (let i = 0; i < t.length; i++) if (sec <= t[i]) return TIERS[i];
-    return TIERS[5];
-  };
-  const percentileFor = (sec, size) => {
-    const t = TIER_TABLE[size];
-    for (let i = 0; i < t.length; i++) if (sec <= t[i]) return PCTS[i];
-    return PCTS[5];
-  };
+  const tierFor = (sec, p) => { const c = CUTS[p]; for (let i = 0; i < c.length; i++) if (sec <= c[i]) return TIERS[i]; return TIERS[5]; };
+  const percentileFor = (sec, p) => { const c = CUTS[p]; for (let i = 0; i < c.length; i++) if (sec <= c[i]) return PCTS[i]; return PCTS[5]; };
 
   const fmtTime = (sec) => {
     const m = Math.floor(sec / 60), s = sec % 60;
     return m + ':' + String(s).padStart(2, '0');
   };
 
-  // ===== 판 만들기 =====
-  // 무작위 배열은 절반이 풀 수 없는 상태가 된다.
-  // 그래서 완성 상태에서 '실제로 가능한 이동'만 반복해 섞는다 → 항상 풀 수 있음이 보장된다.
-  const solvedState = () => {
-    const a = new Array(n * n);
-    for (let i = 0; i < n * n - 1; i++) a[i] = i + 1;
-    a[n * n - 1] = 0;
-    return a;
-  };
+  // --- 상태 ---
+  let pairs = 8;
+  let deck = [];            // 카드별 그림 인덱스
+  let opened = [];          // 지금 뒤집혀 있는 카드 위치
+  let matched = 0;
+  let moves = 0;
+  let elapsed = 0;
+  let running = false;
+  let locked = false;
+  let tickId = null;
 
-  const neighborsOf = (pos) => {
-    const r = Math.floor(pos / n), c = pos % n;
-    const out = [];
-    if (r > 0) out.push(pos - n);
-    if (r < n - 1) out.push(pos + n);
-    if (c > 0) out.push(pos - 1);
-    if (c < n - 1) out.push(pos + 1);
-    return out;
-  };
-
-  const isSolved = () => {
-    for (let i = 0; i < n * n - 1; i++) if (tiles[i] !== i + 1) return false;
-    return tiles[n * n - 1] === 0;
-  };
-
-  const shuffle = () => {
-    tiles = solvedState();
-    blank = n * n - 1;
-    let prev = -1;
-    const steps = n * n * 40;              // 충분히 섞이도록
-    for (let i = 0; i < steps; i++) {
-      const nb = neighborsOf(blank).filter(p => p !== prev);   // 직전 수를 되돌리지 않는다
-      const pick = nb[Math.floor(Math.random() * nb.length)];
-      prev = blank;
-      tiles[blank] = tiles[pick];
-      tiles[pick] = 0;
-      blank = pick;
+  const shuffle = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    // 우연히 완성된 상태로 끝났다면 한 번 더
-    if (isSolved()) shuffle();
+    return arr;
   };
 
-  // ===== 렌더링 =====
-  const GAP = 2;                                   // % 단위
-  const cellSize = () => (100 - (n + 1) * GAP) / n;
-  const posOf = (idx) => {
-    const r = Math.floor(idx / n), c = idx % n;
-    const s = cellSize();
-    return { left: GAP + c * (s + GAP), top: GAP + r * (s + GAP) };
+  const buildDeck = () => {
+    const faces = FACES.slice(0, pairs);
+    deck = shuffle(faces.concat(faces).map(f => f));
   };
 
-  const buildBoard = () => {
-    boardEl.innerHTML = '';
-    tileEls.clear();
-    const s = cellSize();
-    for (let i = 0; i < n * n; i++) {
-      const v = tiles[i];
-      if (!v) continue;
-      const el = document.createElement('button');
-      el.className = 'tile';
-      el.style.width = s + '%';
-      el.style.height = s + '%';
-      el.style.fontSize = 'clamp(14px, ' + (34 / n) + 'vw, ' + (150 / n) + 'px)';
-      el.dataset.v = v;
-      el.textContent = showNums ? v : '';
-      el.setAttribute('aria-label', v + '번 타일');
-      boardEl.appendChild(el);
-      tileEls.set(v, el);
-    }
-    layout();
+  const render = () => {
+    let html = '';
+    deck.forEach((f, i) => {
+      html += '<button class="card" data-i="' + i + '" aria-label="카드 ' + (i + 1) + '">'
+            +   '<span class="inner">'
+            +     '<span class="side back"></span>'
+            +     '<span class="side front">' + f + '</span>'
+            +   '</span>'
+            + '</button>';
+    });
+    boardEl.innerHTML = html;
   };
 
-  const layout = () => {
-    for (let i = 0; i < n * n; i++) {
-      const v = tiles[i];
-      if (!v) continue;
-      const el = tileEls.get(v);
-      const p = posOf(i);
-      el.style.left = p.left + '%';
-      el.style.top = p.top + '%';
-      el.classList.toggle('ok', v === i + 1);
-      el.classList.toggle('movable', neighborsOf(blank).includes(i));
-    }
-    movesEl.textContent = moves;
-  };
+  const cards = () => boardEl.children;
 
-  // ===== 이동 =====
-  // 빈칸과 같은 줄에 있는 타일을 누르면 그 사이 타일이 한꺼번에 밀린다.
-  const slideTo = (pos) => {
-    if (!running) return false;
-    const br = Math.floor(blank / n), bc = blank % n;
-    const pr = Math.floor(pos / n), pc = pos % n;
-    if (br !== pr && bc !== pc) return false;       // 같은 줄이 아니면 불가
-
-    let count = 0;
-    if (br === pr) {
-      const step = pc < bc ? -1 : 1;
-      for (let c = bc; c !== pc; c += step) {
-        tiles[br * n + c] = tiles[br * n + c + step];
-        count++;
-      }
-    } else {
-      const step = pr < br ? -1 : 1;
-      for (let r = br; r !== pr; r += step) {
-        tiles[r * n + bc] = tiles[(r + step) * n + bc];
-        count++;
-      }
-    }
-    tiles[pos] = 0;
-    blank = pos;
-    moves += count;
-    layout();
-    if (isSolved()) finish();
-    return true;
-  };
-
-  // 방향키/스와이프: 그 방향에서 빈칸으로 들어올 타일을 민다
-  const slideDir = (dir) => {
-    const r = Math.floor(blank / n), c = blank % n;
-    let target = -1;
-    if (dir === 'up'    && r < n - 1) target = blank + n;   // 아래 타일이 위로 이동
-    if (dir === 'down'  && r > 0)     target = blank - n;
-    if (dir === 'left'  && c < n - 1) target = blank + 1;
-    if (dir === 'right' && c > 0)     target = blank - 1;
-    if (target >= 0) slideTo(target);
-  };
-
-  // ===== 타이머 =====
   const startTimer = () => {
     clearInterval(tickId);
     tickId = setInterval(() => {
@@ -563,25 +472,59 @@
     }, 1000);
   };
 
-  // ===== 완성 =====
+  // --- 카드 뒤집기 ---
+  const flip = (i) => {
+    if (!running || locked) return;
+    const c = cards()[i];
+    if (!c || c.classList.contains('done') || c.classList.contains('up')) return;
+
+    c.classList.add('up');
+    opened.push(i);
+
+    if (opened.length === 2) {
+      moves++;
+      movesEl.textContent = moves;
+      const [a, b] = opened;
+      if (deck[a] === deck[b]) {
+        // 짝을 찾음
+        opened = [];
+        matched++;
+        setTimeout(() => {
+          cards()[a].classList.remove('up'); cards()[a].classList.add('done');
+          cards()[b].classList.remove('up'); cards()[b].classList.add('done');
+          if (matched === pairs) finish();
+        }, 260);
+      } else {
+        // 다르면 잠깐 보여준 뒤 덮는다
+        locked = true;
+        setTimeout(() => {
+          cards()[a].classList.remove('up');
+          cards()[b].classList.remove('up');
+          opened = [];
+          locked = false;
+        }, 720);
+      }
+    }
+  };
+
+  // --- 완성 ---
   const finish = () => {
     running = false;
     clearInterval(tickId);
-    layout();
 
-    const bk = bestKey(n);
+    const bk = bestKey(pairs);
     const prevBest = parseInt(store.get(bk), 10);
     const isNewBest = !Number.isFinite(prevBest) || elapsed < prevBest;
     if (isNewBest) store.set(bk, elapsed);
 
-    const tier = tierFor(elapsed, n);
-    const pct = percentileFor(elapsed, n);
+    const tier = tierFor(elapsed, pairs);
+    const pct = percentileFor(elapsed, pairs);
     ovBig.textContent = '완성!';
     ovSub.classList.add('hidden');
     ovTier.textContent = tier.emoji;
     ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
     ovTime.textContent = fmtTime(elapsed);
-    ovStat.textContent = `${n}×${n} · 이동 ${moves}회`;
+    ovStat.textContent = pairs + '쌍 · 뒤집기 ' + moves + '번';
     ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
     [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
     startBtn.textContent = '새 게임';
@@ -589,9 +532,10 @@
   };
 
   const shareResult = async () => {
-    const tier = tierFor(elapsed, n);
-    const pct = percentileFor(elapsed, n);
-    const text = `슬라이드 퍼즐 ${n}×${n} ${fmtTime(elapsed)} 완성! (이동 ${moves}회) ${tier.emoji} ${tier.title} (상위 ${pct}%)\nhttps://fusepuzzle.com/slide/`;
+    const tier = tierFor(elapsed, pairs);
+    const pct = percentileFor(elapsed, pairs);
+    const text = '짝 맞추기 ' + pairs + '쌍 ' + fmtTime(elapsed) + ' 완성! (뒤집기 ' + moves + '번) '
+      + tier.emoji + ' ' + tier.title + ' (상위 ' + pct + '%)\nhttps://fusepuzzle.com/match/';
     try {
       if (navigator.share) {
         await navigator.share({ text });
@@ -603,77 +547,45 @@
     } catch {}
   };
 
-  // ===== 새 게임 =====
+  // --- 새 게임 ---
   const newGame = () => {
-    shuffle();
-    moves = 0;
-    elapsed = 0;
+    buildDeck();
+    render();
+    opened = []; matched = 0; moves = 0; elapsed = 0;
+    locked = false; running = true;
+    movesEl.textContent = '0';
     timerEl.textContent = '0:00';
-    running = true;
     overlay.classList.add('hidden');
     ovSub.classList.remove('hidden');
     [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
-    buildBoard();
     startTimer();
   };
 
-  // ===== 입력 =====
+  // --- 이벤트 ---
   boardEl.addEventListener('click', (e) => {
-    const el = e.target.closest('.tile');
-    if (!el) return;
-    const v = +el.dataset.v;
-    const pos = tiles.indexOf(v);
-    slideTo(pos);
+    const c = e.target.closest('.card');
+    if (c) flip(+c.dataset.i);
   });
 
   sizesEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('.size');
-    if (!btn) return;
-    n = +btn.dataset.n;
-    [...sizesEl.children].forEach(b => b.classList.toggle('on', b === btn));
+    const b = e.target.closest('.size');
+    if (!b) return;
+    pairs = +b.dataset.p;
+    [...sizesEl.children].forEach(x => x.classList.toggle('on', x === b));
     newGame();
   });
 
   startBtn.addEventListener('click', newGame);
   newBtn.addEventListener('click', newGame);
   shareBtn.addEventListener('click', shareResult);
-  numBtn.addEventListener('click', () => {
-    showNums = !showNums;
-    numBtn.textContent = showNums ? '번호 숨기기' : '번호 보기';
-    tileEls.forEach((el, v) => { el.textContent = showNums ? v : ''; });
-  });
 
-  document.addEventListener('keydown', (e) => {
-    if (!running) return;
-    const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
-    if (e.key in map) { e.preventDefault(); slideDir(map[e.key]); }
-  });
-
-  // 스와이프
-  let sx = 0, sy = 0, swiping = false;
-  boardEl.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true;
-  }, { passive: true });
-  boardEl.addEventListener('touchend', (e) => {
-    if (!swiping) return;
-    swiping = false;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;    // 짧은 움직임은 탭으로 처리
-    e.preventDefault();
-    if (Math.abs(dx) > Math.abs(dy)) slideDir(dx > 0 ? 'right' : 'left');
-    else slideDir(dy > 0 ? 'down' : 'up');
-  }, { passive: false });
-
-  // ===== 초기화 =====
-  tiles = solvedState();
-  blank = n * n - 1;
-  buildBoard();
-  const b = parseInt(store.get(bestKey(n)), 10);
+  // --- 초기화: 뒷면만 깔아둔다 ---
+  buildDeck();
+  render();
+  const b = parseInt(store.get(bestKey(pairs)), 10);
   if (Number.isFinite(b)) {
-    ovSub.innerHTML = '빈칸 옆 타일을 눌러 밀면서 <b>1부터 순서대로</b> 맞추세요.<br>' +
-                      `${n}×${n} 최고 기록 <b>${fmtTime(b)}</b>`;
+    ovSub.innerHTML = '카드를 <b>두 장씩</b> 뒤집어 같은 그림을 찾으세요.<br>'
+      + pairs + '쌍 최고 기록 <b>' + fmtTime(b) + '</b>';
   }
 })();
 </script>
