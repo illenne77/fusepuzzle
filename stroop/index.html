@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>색 글자 — 스트룹 테스트 게임 | Fuse</title>
+<meta name="google-site-verification" content="8KNdWujA6rBKDKpwPg2N-TSvFmHT07HeaxqcXo25lTg" />
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525141048057735"
+     crossorigin="anonymous"></script>
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- 소셜 공유 (Open Graph / Twitter) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fuse">
+<meta property="og:image" content="https://fusepuzzle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fusepuzzle.com/og-image.png">
+<link rel="canonical" href="https://fusepuzzle.com/stroop/">
+<meta property="og:url" content="https://fusepuzzle.com/stroop/">
+<meta property="og:title" content="색 글자 — 스트룹 테스트 게임">
+<meta property="og:description" content="'파랑'이 빨간색으로 적혀 있을 때 글자가 아니라 색을 골라야 합니다. 읽으려는 반사를 억눌러야 하는 무료 스트룹 테스트 게임.">
+<meta name="description" content="스트룹 테스트를 게임으로. 글자의 뜻과 색이 어긋난 문제에서 지시대로 색 또는 뜻을 골라내는 반사 억제 게임입니다. 60초 동안 몇 개나 맞힐 수 있는지 확인해 보세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10141f;
+    --panel:#1b2130;
+    --ink:#e8ecf4;
+    --muted:#8b93a7;
+    --accent:#5b8cff;
+    --accent-2:#8b5cf6;
+    --radius:10px;
+    --bad:#ee5a54;
+    --good:#37a86e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.14), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(139,92,246,.12), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Outfit', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{width:100%; max-width:460px;}
+
+  header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .brand{display:flex; flex-direction:column;}
+  .logo{
+    margin:0; font-size:40px; font-weight:800; line-height:1; letter-spacing:-1px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tagline{color:var(--muted); font-size:13px; margin-top:6px; max-width:200px; line-height:1.4;}
+
+  .scores{display:flex; gap:8px;}
+  .score{
+    background:var(--panel); border-radius:var(--radius);
+    padding:8px 13px; min-width:64px; text-align:center;
+  }
+  .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
+  .score .val{font-size:20px; font-weight:700; line-height:1.1; margin-top:2px; font-variant-numeric:tabular-nums;}
+
+  /* 모드 선택 */
+  .modes{display:flex; gap:6px; margin-bottom:12px;}
+  .mode{
+    flex:1; font-family:inherit; font-weight:600; font-size:13px; color:var(--muted);
+    background:var(--panel); border:1px solid rgba(255,255,255,.06);
+    border-radius:var(--radius); padding:9px 4px; cursor:pointer;
+    transition:color .15s ease, background .15s ease;
+  }
+  .mode:hover{background:#232b3d;}
+  .mode:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .mode.on{
+    color:#fff; border-color:transparent;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+  }
+  .mode small{display:block; font-size:10px; font-weight:600; opacity:.75; margin-top:1px;}
+
+  /* 남은 시간 바 */
+  .timebar-wrap{
+    width:100%; height:10px; border-radius:999px;
+    background:var(--panel); overflow:hidden; margin-bottom:14px;
+  }
+  .timebar{
+    height:100%; width:100%; border-radius:999px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform-origin:left center;
+  }
+  .timebar.low{background:linear-gradient(90deg, #ee7a35, var(--bad));}
+
+  .board-outer{position:relative; width:100%;}
+
+  /* 문제 패널 */
+  .stage{
+    background:var(--panel); border-radius:16px;
+    padding:22px 18px 26px; text-align:center;
+    min-height:190px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    user-select:none;
+  }
+  .ask{
+    font-size:14px; font-weight:600; color:var(--muted);
+    letter-spacing:.2px; margin-bottom:14px;
+  }
+  .ask b{
+    color:var(--ink); font-weight:800;
+    border-bottom:2px solid var(--accent); padding-bottom:1px;
+  }
+  .word{
+    font-size:clamp(48px, 17vw, 76px); font-weight:800; line-height:1.05;
+    letter-spacing:-1px;
+    transition:opacity .06s ease;
+  }
+  .combo{
+    font-size:13px; font-weight:700; color:var(--good);
+    margin-top:12px; min-height:18px;
+  }
+  .combo.hide{visibility:hidden;}
+
+  /* 정답 버튼 */
+  .answers{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
+  .ans{
+    font-family:inherit; font-weight:700; font-size:17px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius); padding:18px 8px; cursor:pointer;
+    transition:background .12s ease, transform .07s ease, border-color .12s ease;
+    touch-action:manipulation;
+  }
+  .ans:hover:not([disabled]){background:#232b3d;}
+  .ans:active:not([disabled]){transform:translateY(1px);}
+  .ans:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .ans .key{
+    display:block; font-size:10px; font-weight:600; color:var(--muted);
+    margin-top:3px; letter-spacing:.5px;
+  }
+  .ans.right{background:rgba(55,168,110,.22); border-color:var(--good);}
+  .ans.wrong{background:rgba(238,90,84,.2); border-color:var(--bad); animation:shake .28s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-5px);}
+    75%{transform:translateX(5px);}
+  }
+
+  /* 오버레이 */
+  .overlay{
+    position:absolute; inset:0; border-radius:16px;
+    background:rgba(16,20,31,.94); backdrop-filter:blur(3px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px; z-index:5;
+  }
+  .hidden{display:none !important;}
+  .overlay .big{font-size:26px; font-weight:800; line-height:1.2;}
+  .overlay .sub{font-size:14px; color:var(--muted); line-height:1.6; margin-top:8px;}
+  .overlay .sub b{color:var(--ink);}
+  .ov-tier{font-size:42px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
+  .ov-title{
+    font-size:23px; font-weight:800; line-height:1.15; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .ov-final{font-size:14px; color:var(--ink); margin-top:6px;}
+  .ov-final b{font-size:34px; font-weight:800; display:block; margin-top:2px;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .ov-stat{font-size:13px; color:var(--muted); margin-top:6px; line-height:1.6;}
+  .ov-pct{
+    font-size:14px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:999px; padding:6px 14px; margin-top:8px;
+  }
+  .ov-pct b{color:var(--accent);}
+  .ov-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .btn-primary{
+    font-family:inherit; font-weight:700; font-size:15px; color:#fff;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    border:none; border-radius:var(--radius); padding:12px 22px; cursor:pointer;
+    transition:filter .15s ease, transform .08s ease;
+  }
+  .btn-primary:hover{filter:brightness(1.05);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-primary:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .btn-ghost{
+    font-family:inherit; font-weight:600; font-size:14px; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius); padding:12px 16px; cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  .btn-ghost:hover{background:#232b3d;}
+  .btn-ghost:active{transform:translateY(1px);}
+  .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+  .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
+
+  /* 본문 콘텐츠 */
+  .content{
+    font-size:14px; color:#cdd3e0; line-height:1.75;
+    background:var(--panel); border-radius:var(--radius);
+    padding:18px 18px 20px; margin-top:18px;
+  }
+  .content h2{font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700;}
+  .content h3{font-size:14px; color:var(--accent); margin:18px 0 6px; font-weight:600;}
+  .content p{margin:0 0 12px;}
+  .content ul,.content ol{margin:0 0 12px; padding-left:20px;}
+  .content li{margin:5px 0;}
+  .content b,.content strong{color:var(--ink); font-weight:600;}
+  .content a{color:var(--accent);}
+  .more-nav{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:14px;}
+  .more-nav a{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--panel); border:1px solid rgba(255,255,255,.07);
+    border-radius:var(--radius); padding:11px 8px;
+    color:var(--ink); font-size:13px; font-weight:600;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .more-nav a:hover{background:#232b3d; border-color:rgba(91,140,255,.4);}
+  .more-title{font-size:13px; color:var(--muted); margin:18px 0 0; text-align:center;}
+
+  .ad-slot:empty{display:none;}
+  .ad-slot{margin:16px 0;}
+
+  footer{
+    font-size:13px; color:var(--muted); text-align:center;
+    margin-top:24px; line-height:1.6;
+  }
+  footer a{color:var(--ink); text-decoration:none; transition:color .2s;}
+  footer a:hover{color:var(--accent);}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+    .ans.wrong{animation:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1 class="logo">색 글자</h1>
+        <div class="tagline">글자 말고 색을 보세요!</div>
+      </div>
+      <div class="scores">
+        <div class="score">
+          <div class="label">점수</div>
+          <div class="val" id="score">0</div>
+        </div>
+        <div class="score">
+          <div class="label">최고</div>
+          <div class="val" id="best">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="modes" id="modes">
+      <button class="mode on" data-m="color">색 고르기<small>기본</small></button>
+      <button class="mode" data-m="word">뜻 고르기<small>쉬움</small></button>
+      <button class="mode" data-m="mix">번갈아<small>어려움</small></button>
+    </div>
+
+    <div class="timebar-wrap" aria-hidden="true">
+      <div class="timebar" id="timebar"></div>
+    </div>
+
+    <div class="board-outer">
+      <div class="stage" id="stage">
+        <div class="ask" id="ask">글자의 <b>색</b>을 고르세요</div>
+        <div class="word" id="word" aria-live="polite">파랑</div>
+        <div class="combo hide" id="combo">연속 0</div>
+      </div>
+
+      <div class="overlay" id="overlay">
+        <div class="big" id="ov-big">색 글자</div>
+        <div class="sub" id="ov-sub">
+          글자의 <b>뜻</b>과 <b>색</b>이 다르게 나옵니다.<br>
+          지시대로 고르세요. 60초 동안 몇 개나 맞힐 수 있을까요?
+        </div>
+        <div class="ov-tier hidden" id="ov-tier"></div>
+        <div class="ov-title hidden" id="ov-title"></div>
+        <div class="ov-final hidden" id="ov-final">맞힌 개수<b id="ov-score">0</b></div>
+        <div class="ov-stat hidden" id="ov-stat"></div>
+        <div class="ov-pct hidden" id="ov-pct"></div>
+        <div class="ov-actions">
+          <button class="btn-primary" id="startBtn">시작</button>
+          <button class="btn-ghost hidden" id="shareBtn">결과 복사</button>
+        </div>
+        <div class="ov-note hidden" id="ov-note">* 상위 %는 재미로 보는 추정치예요.</div>
+      </div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+
+    <!-- ▼▼▼ 애드센스 코드는 여기 안에 붙여넣으세요 (승인 후) ▼▼▼ -->
+    <div class="ad-slot" id="ad-slot"></div>
+    <!-- ▲▲▲ 광고 자리 (비어 있으면 화면에 안 보입니다) ▲▲▲ -->
+
+    <section class="content">
+      <h2>게임 방법</h2>
+      <p>
+        화면에 색 이름이 큼직하게 나타나는데, <b>글자의 뜻과 실제 글자 색이 서로 다릅니다.</b>
+        예를 들어 "파랑"이라는 글자가 <b>빨간색</b>으로 적혀 있는 식입니다.
+        이때 지시문이 "글자의 <b>색</b>을 고르세요"라면 정답은 <b>빨강</b>입니다. 글자를 읽으면 안 됩니다.
+      </p>
+      <p>
+        아래 네 개의 버튼에서 답을 고르면 바로 다음 문제로 넘어갑니다.
+        <b>60초 동안 최대한 많이</b> 맞히는 것이 목표이고, 틀리면 시간이 2초 줄어듭니다.
+        연속으로 맞히면 콤보가 쌓이고, PC에서는 <b>1~4 숫자키</b>로도 답할 수 있습니다.
+      </p>
+
+      <h3>세 가지 모드</h3>
+      <ul>
+        <li><b>색 고르기</b> — 글자 색을 답합니다. 읽으려는 반사를 눌러야 해서 가장 대표적인 형태입니다.</li>
+        <li><b>뜻 고르기</b> — 글자가 뜻하는 색을 답합니다. 읽던 대로 하면 되니 훨씬 쉽습니다.</li>
+        <li><b>번갈아</b> — 지시문이 문제마다 바뀝니다. 규칙을 계속 갈아타야 해서 난이도가 확 올라갑니다.</li>
+      </ul>
+
+      <h3>왜 이렇게 헷갈릴까</h3>
+      <p>
+        글을 오래 읽어온 사람에게 <b>읽기는 거의 자동으로 일어나는 처리</b>입니다.
+        색을 인지하는 것보다 글자를 읽는 쪽이 더 빠르게 처리되기 때문에,
+        색을 답하려면 먼저 튀어나온 "읽은 결과"를 억눌러야 합니다. 이 한 박자 때문에 반응이 느려지고 실수가 납니다.
+      </p>
+      <p>
+        이 현상은 <b>스트룹 효과</b>라는 이름으로 알려져 있고, 1930년대에 보고된 이래
+        주의와 억제 능력을 살펴보는 과제로 널리 쓰여 왔습니다.
+        뜻과 색이 <b>일치하는 문제</b>도 가끔 섞여 나오는데, 그럴 때 유난히 쉽게 느껴지는 것이 정상입니다.
+      </p>
+
+      <h3>더 잘하는 요령</h3>
+      <ul>
+        <li><b>글자를 또렷이 보지 마세요.</b> 시선을 살짝 흐리거나 글자의 가장자리만 보면 읽기가 덜 개입합니다.</li>
+        <li><b>답을 소리로 만들지 마세요.</b> 머릿속으로 읽는 순간 글자 쪽으로 끌려갑니다. 색을 본 즉시 버튼 위치로 손이 가게 하세요.</li>
+        <li><b>버튼 위치를 외우세요.</b> 버튼 순서는 고정입니다. 어디가 빨강인지 몸에 익으면 답을 찾는 시간이 줄어듭니다.</li>
+        <li><b>틀린 문제를 곱씹지 마세요.</b> 직전 실수를 떠올리는 사이 다음 문제를 놓칩니다.</li>
+      </ul>
+
+      <h3>기록에 대해</h3>
+      <p>
+        모드별로 최고 점수가 브라우저에 저장됩니다. 게임이 끝나면 맞힌 개수와 함께
+        정확도, 최고 콤보, 평균 반응 시간이 표시됩니다.
+        평균 반응 시간은 <b>같은 모드끼리</b> 비교해야 의미가 있습니다.
+        '색 고르기'가 '뜻 고르기'보다 느리게 나오는 것이 자연스러운 결과입니다.
+      </p>
+      <p>
+        같은 계열의 게임으로 <a href="/reaction/">반응속도 테스트</a>가 있습니다.
+        그쪽이 순수한 반응 속도를 잰다면, 이 게임은 <b>헷갈리는 정보를 눌러내는 능력</b>을 봅니다.
+        집중이 흐트러졌을 때의 변화가 궁금하다면 <a href="/guide/focus/">집중이 안 될 때</a>도 함께 읽어보세요.
+      </p>
+    </section>
+
+    <p class="more-title">다른 게임도 해보세요</p>
+    <nav class="more-nav">
+        <a href="/fuse/">숫자 합치기</a>
+        <a href="/sudoku/">스도쿠</a>
+        <a href="/sequence/">컬러 시퀀스</a>
+        <a href="/reaction/">반응속도</a>
+        <a href="/color-spot/">색 찾기</a>
+        <a href="/math/">빠른 암산</a>
+        <a href="/slide/">슬라이드</a>
+    </nav>
+
+    <footer>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;">
+        <a href="/">홈</a><span style="opacity:.4">·</span>
+        <a href="/guide/">공략</a><span style="opacity:.4">·</span>
+        <a href="../how-to-play.html">게임 방법</a><span style="opacity:.4">·</span>
+        <a href="../about.html">소개</a><span style="opacity:.4">·</span>
+        <a href="../privacy.html">개인정보처리방침</a>
+      </div>
+      © <span id="fyear"></span> Fuse. 무료 퍼즐 게임.
+    </footer>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const stageEl  = document.getElementById('stage');
+  const askEl    = document.getElementById('ask');
+  const wordEl   = document.getElementById('word');
+  const comboEl  = document.getElementById('combo');
+  const ansEl    = document.getElementById('answers');
+  const modesEl  = document.getElementById('modes');
+  const scoreEl  = document.getElementById('score');
+  const bestEl   = document.getElementById('best');
+  const timebar  = document.getElementById('timebar');
+  const overlay  = document.getElementById('overlay');
+  const ovBig    = document.getElementById('ov-big');
+  const ovSub    = document.getElementById('ov-sub');
+  const ovTier   = document.getElementById('ov-tier');
+  const ovTitle  = document.getElementById('ov-title');
+  const ovFinal  = document.getElementById('ov-final');
+  const ovScore  = document.getElementById('ov-score');
+  const ovStat   = document.getElementById('ov-stat');
+  const ovPct    = document.getElementById('ov-pct');
+  const ovNote   = document.getElementById('ov-note');
+  const startBtn = document.getElementById('startBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  document.getElementById('fyear').textContent = new Date().getFullYear();
+
+  // --- 저장소: try-catch + 메모리 폴백 ---
+  const store = (() => {
+    let mem = {};
+    try {
+      const k = '__stroop_test';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return {
+        get: k => localStorage.getItem(k),
+        set: (k, v) => localStorage.setItem(k, v)
+      };
+    } catch {
+      return {
+        get: k => (k in mem ? mem[k] : null),
+        set: (k, v) => { mem[k] = String(v); }
+      };
+    }
+  })();
+
+  // --- 색 정의 (버튼 순서는 고정: 위치를 외울 수 있게) ---
+  const COLORS = [
+    { name:'빨강', hex:'#ee5a54' },
+    { name:'파랑', hex:'#5b8cff' },
+    { name:'초록', hex:'#37a86e' },
+    { name:'노랑', hex:'#eab308' }
+  ];
+
+  const TOTAL_TIME = 60;      // 제한 시간(초)
+  const PENALTY = 2;          // 오답 시 차감(초)
+  const CONGRUENT_RATE = 0.25; // 뜻과 색이 일치하는 문제 비율
+
+  const MODE_LABEL = { color:'색 고르기', word:'뜻 고르기', mix:'번갈아' };
+
+  // --- 등급/상위% (맞힌 개수 기준) ---
+  const TIERS = [
+    { emoji:'🧠', title:'억제의 달인' },
+    { emoji:'🏆', title:'고수' },
+    { emoji:'💎', title:'전문가' },
+    { emoji:'🥇', title:'숙련' },
+    { emoji:'🥈', title:'견습' },
+    { emoji:'🥉', title:'초보' }
+  ];
+  const PCTS = [4, 12, 28, 50, 72, 90];
+  // 모드마다 체감 난이도가 달라 기준선을 따로 둔다
+  const CUTS = {
+    color: [45, 36, 28, 20, 13],
+    word:  [58, 47, 37, 27, 18],
+    mix:   [38, 30, 23, 16, 10]
+  };
+  const tierFor = (s, m) => {
+    const c = CUTS[m];
+    for (let i = 0; i < c.length; i++) if (s >= c[i]) return TIERS[i];
+    return TIERS[5];
+  };
+  const percentileFor = (s, m) => {
+    const c = CUTS[m];
+    for (let i = 0; i < c.length; i++) if (s >= c[i]) return PCTS[i];
+    return PCTS[5];
+  };
+
+  // --- 상태 ---
+  let mode = 'color';
+  let task = 'color';        // 이번 문제에서 물어보는 것 (mix 모드는 매번 바뀜)
+  let answer = -1;           // 정답 색 인덱스
+  let score = 0, combo = 0, maxCombo = 0, wrong = 0;
+  let rts = [];              // 정답까지 걸린 시간들
+  let shownAt = 0;
+  let timeLeft = TOTAL_TIME;
+  let running = false, locked = false;
+  let rafId = null, lastT = 0;
+
+  const bestKey = m => 'stroop_best_' + m;
+  const randInt = n => Math.floor(Math.random() * n);
+  const now = () => performance.now();
+
+  const loadBest = () => {
+    const b = parseInt(store.get(bestKey(mode)), 10);
+    bestEl.textContent = Number.isFinite(b) ? b : 0;
+    return Number.isFinite(b) ? b : 0;
+  };
+
+  // --- 정답 버튼 만들기 (순서 고정) ---
+  const buildAnswers = () => {
+    ansEl.innerHTML = '';
+    COLORS.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.className = 'ans';
+      b.dataset.i = i;
+      b.innerHTML = c.name + '<span class="key">' + (i + 1) + '</span>';
+      ansEl.appendChild(b);
+    });
+  };
+
+  // --- 문제 만들기 ---
+  const nextQuestion = () => {
+    const wordIdx = randInt(COLORS.length);
+    let inkIdx;
+    if (Math.random() < CONGRUENT_RATE) {
+      inkIdx = wordIdx;                     // 뜻과 색이 일치 (가끔 쉬운 문제)
+    } else {
+      do { inkIdx = randInt(COLORS.length); } while (inkIdx === wordIdx);
+    }
+    task = (mode === 'mix') ? (Math.random() < 0.5 ? 'color' : 'word') : mode;
+    answer = (task === 'color') ? inkIdx : wordIdx;
+
+    askEl.innerHTML = (task === 'color')
+      ? '글자의 <b>색</b>을 고르세요'
+      : '글자의 <b>뜻</b>을 고르세요';
+    wordEl.textContent = COLORS[wordIdx].name;
+    wordEl.style.color = COLORS[inkIdx].hex;
+    shownAt = now();
+    locked = false;
+  };
+
+  const renderCombo = () => {
+    if (combo >= 2) {
+      comboEl.textContent = '연속 ' + combo + '개';
+      comboEl.classList.remove('hide');
+    } else {
+      comboEl.classList.add('hide');
+    }
+  };
+
+  const updateBar = () => {
+    const r = Math.max(0, Math.min(1, timeLeft / TOTAL_TIME));
+    timebar.style.transform = 'scaleX(' + r + ')';
+    timebar.classList.toggle('low', r < 0.25);
+  };
+
+  const loop = (t) => {
+    if (!running) return;
+    if (!lastT) lastT = t;
+    timeLeft -= (t - lastT) / 1000;
+    lastT = t;
+    if (timeLeft <= 0) { timeLeft = 0; updateBar(); finish(); return; }
+    updateBar();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  // --- 답 처리 ---
+  const answerWith = (i) => {
+    if (!running || locked) return;
+    const btn = ansEl.children[i];
+    if (!btn) return;
+
+    if (i === answer) {
+      score++;
+      combo++;
+      if (combo > maxCombo) maxCombo = combo;
+      rts.push(now() - shownAt);
+      scoreEl.textContent = score;
+      btn.classList.add('right');
+      locked = true;
+      setTimeout(() => { btn.classList.remove('right'); if (running) { renderCombo(); nextQuestion(); } }, 90);
+    } else {
+      wrong++;
+      combo = 0;
+      timeLeft -= PENALTY;
+      btn.classList.add('wrong');
+      // 정답 버튼을 잠깐 보여줘 무엇이 맞았는지 알려준다
+      const right = ansEl.children[answer];
+      right.classList.add('right');
+      locked = true;
+      setTimeout(() => {
+        btn.classList.remove('wrong');
+        right.classList.remove('right');
+        if (timeLeft <= 0) { timeLeft = 0; updateBar(); finish(); return; }
+        if (running) { renderCombo(); nextQuestion(); }
+      }, 380);
+      updateBar();
+    }
+  };
+
+  // --- 종료 ---
+  const finish = () => {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null; lastT = 0;
+
+    const prevBest = parseInt(store.get(bestKey(mode)), 10);
+    const isNewBest = !Number.isFinite(prevBest) || score > prevBest;
+    if (isNewBest) { store.set(bestKey(mode), score); bestEl.textContent = score; }
+
+    const total = score + wrong;
+    const acc = total ? Math.round(score / total * 100) : 0;
+    const avg = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;
+
+    const tier = tierFor(score, mode);
+    const pct = percentileFor(score, mode);
+    ovBig.textContent = '시간 종료!';
+    ovSub.classList.add('hidden');
+    ovTier.textContent = tier.emoji;
+    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
+    ovScore.textContent = score;
+    ovStat.innerHTML = MODE_LABEL[mode] + ' · 정확도 ' + acc + '%'
+      + (maxCombo >= 2 ? ' · 최고 연속 ' + maxCombo : '')
+      + (avg ? '<br>평균 반응 ' + avg + 'ms' : '');
+    ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
+    startBtn.textContent = '다시 하기';
+    overlay.classList.remove('hidden');
+    comboEl.classList.add('hide');
+  };
+
+  const shareResult = async () => {
+    const tier = tierFor(score, mode);
+    const pct = percentileFor(score, mode);
+    const text = '색 글자(스트룹) ' + MODE_LABEL[mode] + ' ' + score + '개 정답! '
+      + tier.emoji + ' ' + tier.title + ' (상위 ' + pct + '%)\nhttps://fusepuzzle.com/stroop/';
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        shareBtn.textContent = '복사됨!';
+        setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
+      }
+    } catch {}
+  };
+
+  // --- 시작 ---
+  const startGame = () => {
+    score = 0; combo = 0; maxCombo = 0; wrong = 0;
+    rts = [];
+    timeLeft = TOTAL_TIME;
+    running = true; locked = false; lastT = 0;
+    scoreEl.textContent = '0';
+    overlay.classList.add('hidden');
+    ovSub.classList.remove('hidden');
+    [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
+    renderCombo();
+    updateBar();
+    nextQuestion();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  // --- 이벤트 ---
+  ansEl.addEventListener('click', (e) => {
+    const b = e.target.closest('.ans');
+    if (b) answerWith(+b.dataset.i);
+  });
+
+  modesEl.addEventListener('click', (e) => {
+    const b = e.target.closest('.mode');
+    if (!b) return;
+    mode = b.dataset.m;
+    [...modesEl.children].forEach(x => x.classList.toggle('on', x === b));
+    loadBest();
+    if (running) { startGame(); }        // 진행 중이면 새 모드로 다시 시작
+    else {
+      ovBig.textContent = '색 글자';
+      ovSub.innerHTML = (mode === 'word')
+        ? '글자가 <b>뜻하는 색</b>을 고르세요.<br>60초 동안 몇 개나 맞힐 수 있을까요?'
+        : (mode === 'mix')
+          ? '지시문이 <b>문제마다 바뀝니다.</b><br>색이냐 뜻이냐를 매번 확인하세요.'
+          : '글자의 <b>뜻</b>과 <b>색</b>이 다르게 나옵니다.<br>지시대로 고르세요. 60초 동안 몇 개나 맞힐 수 있을까요?';
+      ovSub.classList.remove('hidden');
+      [ovTier, ovTitle, ovFinal, ovStat, ovPct, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
+      startBtn.textContent = '시작';
+      overlay.classList.remove('hidden');
+    }
+  });
+
+  startBtn.addEventListener('click', startGame);
+  shareBtn.addEventListener('click', shareResult);
+
+  document.addEventListener('keydown', (e) => {
+    if (!running) return;
+    if (e.key >= '1' && e.key <= '4') { e.preventDefault(); answerWith(+e.key - 1); }
+  });
+
+  // --- 초기화 ---
+  buildAnswers();
+  loadBest();
+  updateBar();
+})();
+</script>
+</body>
+</html>
