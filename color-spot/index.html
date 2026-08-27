@@ -135,6 +135,18 @@
     20%{opacity:1; transform:translate(-50%,-62%) scale(1.14);}
     100%{opacity:0; transform:translate(-50%,-118%) scale(1);}
   }
+  /* 누른 자리에 즉시 터지는 플래시. 정답이면 판이 바로 새로 그려지므로
+     방금 누른 타일이 반응 없이 사라지는데, 이걸로 촉감을 남긴다.
+     오디오 출력 지연과 무관하게 항상 즉각적이다. */
+  .fx-flash{
+    position:absolute; border-radius:10px; background:#fff;
+    animation:flash .15s ease-out forwards;
+  }
+  .fx-flash.bad{background:var(--bad);}
+  @keyframes flash{
+    0%{opacity:.8; transform:scale(1);}
+    100%{opacity:0; transform:scale(1.26);}
+  }
   .fx-ring{
     position:absolute; width:14px; height:14px; border-radius:50%;
     border:3px solid #fff; transform:translate(-50%,-50%);
@@ -258,7 +270,7 @@
   @media(prefers-reduced-motion:reduce){
     *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
     .tile.wrong{animation:none; outline:3px solid var(--bad); outline-offset:-3px;}
-    .fx-ring{display:none;}
+    .fx-ring, .fx-flash{display:none;}
     .board.danger{animation:none; box-shadow:0 0 0 4px rgba(238,90,84,.45);}
     .timebar.low{animation:none;}
   }
@@ -470,45 +482,97 @@
   })();
 
   // --- 효과음 · 진동 (한 토글로 함께 켜고 끈다) ---
+  // 타격감이 목표라 지연을 줄이는 데 초점을 맞췄다.
+  //  · 컨텍스트는 '시작' 버튼(사용자 제스처) 때 미리 열어둔다. 첫 타격에서 만들면 그만큼 늦다.
+  //  · 어택은 1.5ms 선형. 0에 가까운 값에서 지수로 올리면 실제보다 늦게 들린다.
+  //  · 배음을 짧게 얹어 시작점을 뾰족하게 만든다. 순수 사인파는 트랜지언트가 없어 물렁하다.
   const sfx = (() => {
-    let ctx = null;
+    let ctx = null, master = null;
     let on = store.get('colorspot_sound') !== 'off';
-    const ac = () => {
+
+    const build = () => {
       if (ctx) return ctx;
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
-      try { ctx = new AC(); } catch { ctx = null; }
+      try {
+        ctx = new AC({ latencyHint: 'interactive' });
+        master = ctx.createGain();
+        master.gain.value = 0.9;
+        master.connect(ctx.destination);
+      } catch { ctx = null; master = null; }
       return ctx;
     };
-    const tone = (freq, dur, type, vol, delay) => {
-      if (!on) return;
-      const c = ac(); if (!c) return;
+
+    // 사용자 제스처 시점에 컨텍스트를 열고 무음 버퍼를 한 번 흘려 잠금을 푼다.
+    const warm = () => {
+      const c = build(); if (!c) return;
       try {
         if (c.state === 'suspended') c.resume();
-        const t0 = c.currentTime + (delay || 0);
-        const osc = c.createOscillator();
-        const g = c.createGain();
-        osc.type = type || 'sine';
-        osc.frequency.setValueAtTime(freq, t0);
-        g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(g); g.connect(c.destination);
-        osc.start(t0); osc.stop(t0 + dur + 0.03);
+        const src = c.createBufferSource();
+        src.buffer = c.createBuffer(1, 1, c.sampleRate);
+        src.connect(master); src.start(0);
       } catch {}
     };
+
+    // 한 음. drop으로 피치를 살짝 떨어뜨려 튕기는 느낌을, bright로 배음을 얹어 어택을 세운다.
+    const voice = (freq, o) => {
+      const c = ctx || build(); if (!c) return;
+      const dur = o.dur || 0.11;
+      try {
+        if (c.state === 'suspended') c.resume();
+        const t0 = c.currentTime + (o.at || 0);
+        const osc = c.createOscillator(), g = c.createGain();
+        osc.type = o.type || 'triangle';
+        osc.frequency.setValueAtTime(freq, t0);
+        if (o.drop) osc.frequency.exponentialRampToValueAtTime(freq * o.drop, t0 + dur);
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(o.vol, t0 + 0.0015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        osc.connect(g); g.connect(master);
+        osc.start(t0); osc.stop(t0 + dur + 0.02);
+
+        if (o.bright) {
+          const o2 = c.createOscillator(), g2 = c.createGain();
+          o2.type = 'square';
+          o2.frequency.setValueAtTime(freq * 4, t0);
+          g2.gain.setValueAtTime(0, t0);
+          g2.gain.linearRampToValueAtTime(o.bright, t0 + 0.001);
+          g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.024);
+          o2.connect(g2); g2.connect(master);
+          o2.start(t0); o2.stop(t0 + 0.05);
+        }
+      } catch {}
+    };
+
     const buzz = (pattern) => {
-      if (!on) return;
       try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {}
     };
+
     return {
       isOn: () => on,
-      toggle(){ on = !on; store.set('colorspot_sound', on ? 'on' : 'off'); if (on) ac(); return on; },
+      warm,
+      toggle(){ on = !on; store.set('colorspot_sound', on ? 'on' : 'off'); if (on) warm(); return on; },
       // 콤보가 쌓일수록 음이 반음씩 올라간다
-      correct(c){ tone(523.25 * Math.pow(2, Math.min(c, 12) / 12), 0.13, 'sine', 0.16); buzz(12); },
-      wrong(){ tone(150, 0.2, 'square', 0.10); buzz([18, 40, 18]); },
-      level(){ tone(784, 0.10, 'triangle', 0.12); tone(1046.5, 0.15, 'triangle', 0.10, 0.09); },
-      over(){ tone(392, 0.18, 'sine', 0.14); tone(311.1, 0.32, 'sine', 0.13, 0.15); }
+      correct(c){
+        if (!on) return;
+        voice(523.25 * Math.pow(2, Math.min(c, 12) / 12), { dur:0.10, vol:0.20, drop:0.9, bright:0.035 });
+        buzz(14);
+      },
+      wrong(){
+        if (!on) return;
+        voice(160, { type:'square', dur:0.17, vol:0.12, drop:0.6 });
+        buzz([18, 40, 18]);
+      },
+      level(){
+        if (!on) return;
+        voice(784,    { dur:0.09, vol:0.13, bright:0.03 });
+        voice(1046.5, { dur:0.14, vol:0.11, at:0.085, bright:0.025 });
+      },
+      over(){
+        if (!on) return;
+        voice(392,   { type:'sine', dur:0.17, vol:0.15 });
+        voice(311.1, { type:'sine', dur:0.30, vol:0.14, at:0.15 });
+      }
     };
   })();
 
@@ -524,9 +588,18 @@
     trim(sel, max);
     setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, ms);
   };
-  const centerOf = (btn) => {
+  const rectOf = (btn) => {
     const r = btn.getBoundingClientRect(), f = fx.getBoundingClientRect();
-    return { x: r.left - f.left + r.width / 2, y: r.top - f.top + r.height / 2 };
+    const x = r.left - f.left, y = r.top - f.top;
+    return { x, y, w: r.width, h: r.height, cx: x + r.width / 2, cy: y + r.height / 2 };
+  };
+  const flashAt = (r, bad) => {
+    if (reducedMotion) return;
+    const el = document.createElement('div');
+    el.className = 'fx-flash' + (bad ? ' bad' : '');
+    el.style.left = r.x + 'px'; el.style.top = r.y + 'px';
+    el.style.width = r.w + 'px'; el.style.height = r.h + 'px';
+    spawn(el, 200, '.fx-flash', 2);
   };
   const popAt = (x, y, text, cls) => {
     const el = document.createElement('div');
@@ -686,10 +759,16 @@
     const btn = e.target.closest('.tile');
     if (!btn) return;
     const i = parseInt(btn.dataset.i, 10);
+    const isHit = i === oddIndex;
 
-    const at = centerOf(btn);
+    // 소리·진동을 가장 먼저 낸다. 아래 연출(rectOf의 getBoundingClientRect,
+    // updateCombo의 강제 리플로우)이 끝난 뒤에 내면 그만큼 늦게 들린다.
+    if (isHit) sfx.correct(combo + 1); else sfx.wrong();
 
-    if (i === oddIndex) {
+    const at = rectOf(btn);
+    flashAt(at, !isHit);
+
+    if (isHit) {
       // 정답: 콤보가 이어질수록 채워지는 시간이 조금씩 늘어난다
       combo++;
       if (combo > maxCombo) maxCombo = combo;
@@ -701,10 +780,9 @@
       scoreEl.textContent = score;
       timeLeft = Math.min(START_TIME, timeLeft + gain);
 
-      ringAt(at.x, at.y, oddColor);
-      popAt(at.x, at.y, '+' + gain.toFixed(1) + 's', 'good');
+      ringAt(at.cx, at.cy, oddColor);
+      popAt(at.cx, at.cy, '+' + gain.toFixed(1) + 's', 'good');
       updateCombo();
-      sfx.correct(combo);
       updateBar();
       renderStage();
     } else {
@@ -714,9 +792,8 @@
       timeLeft -= PENALTY;
       btn.classList.add('wrong');
       setTimeout(() => btn.classList.remove('wrong'), 300);
-      ringAt(at.x, at.y, 'rgba(238,90,84,.9)');
-      popAt(at.x, at.y, '−' + PENALTY.toFixed(1) + 's', 'bad');
-      sfx.wrong();
+      ringAt(at.cx, at.cy, 'rgba(238,90,84,.9)');
+      popAt(at.cx, at.cy, '−' + PENALTY.toFixed(1) + 's', 'bad');
       if (timeLeft <= 0) {
         timeLeft = 0;
         updateBar();
@@ -776,6 +853,7 @@
   };
 
   const startGame = () => {
+    sfx.warm();   // 사용자 제스처 안에서 미리 열어둬야 첫 타격이 늦지 않다
     level = 0;
     score = 0;
     combo = 0;
