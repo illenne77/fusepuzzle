@@ -140,12 +140,14 @@
      오디오 출력 지연과 무관하게 항상 즉각적이다. */
   .fx-flash{
     position:absolute; border-radius:10px; background:#fff;
-    animation:flash .15s ease-out forwards;
+    box-shadow:0 0 20px 4px rgba(255,255,255,.45);
+    animation:flash .17s cubic-bezier(.15,.7,.3,1) forwards;
   }
-  .fx-flash.bad{background:var(--bad);}
+  .fx-flash.bad{background:var(--bad); box-shadow:0 0 20px 4px rgba(238,90,84,.5);}
   @keyframes flash{
-    0%{opacity:.8; transform:scale(1);}
-    100%{opacity:0; transform:scale(1.26);}
+    0%{opacity:.96; transform:scale(1);}
+    28%{opacity:.82; transform:scale(1.14);}
+    100%{opacity:0; transform:scale(1.44);}
   }
   .fx-ring{
     position:absolute; width:14px; height:14px; border-radius:50%;
@@ -556,12 +558,12 @@
       correct(c){
         if (!on) return;
         voice(523.25 * Math.pow(2, Math.min(c, 12) / 12), { dur:0.10, vol:0.20, drop:0.9, bright:0.035 });
-        buzz(14);
+        buzz(26);
       },
       wrong(){
         if (!on) return;
         voice(160, { type:'square', dur:0.17, vol:0.12, drop:0.6 });
-        buzz([18, 40, 18]);
+        buzz([30, 45, 30]);
       },
       level(){
         if (!on) return;
