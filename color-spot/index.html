@@ -113,6 +113,16 @@
     75%{transform:translateX(4px);}
   }
 
+  /* 정답 타일이 눌렸다 튀어오른 뒤 사라진다. 판을 즉시 갈아버리면
+     방금 누른 대상이 무반응으로 없어져서 촉감이 죽는다. */
+  .tile.hit{animation:hitpop .07s ease-out forwards;}
+  @keyframes hitpop{
+    0%{transform:scale(.82); filter:brightness(1.25);}
+    /* 정점을 60% 지점에 두고 유지한다. 70ms 뒤 타일이 교체되므로
+       끝에 두면 튀어오름이 다 보이기 전에 잘린다. */
+    60%,100%{transform:scale(1.16); filter:brightness(1.9);}
+  }
+
   /* 시간이 얼마 안 남으면 판 전체가 맥박친다 */
   .board.danger{animation:danger .9s ease-in-out infinite;}
   @keyframes danger{
@@ -158,18 +168,20 @@
     0%{opacity:.8; width:14px; height:14px;}
     100%{opacity:0; width:118px; height:118px;}
   }
-  .fx-combo{
-    position:absolute; top:10px; right:10px;
+  /* 콤보 표시. 예전에는 판 오른쪽 위에 얹혀 있어서 그 자리 타일이 정답일 때 가렸다.
+     시간 바 줄로 옮기고, 숨어 있을 때도 자리를 차지하게 해서 나타날 때 흔들리지 않게 한다. */
+  .combo-chip{
+    flex:0 0 auto; min-width:64px; text-align:center;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
-    color:#fff; font-size:13px; font-weight:800; letter-spacing:.2px;
-    padding:5px 12px; border-radius:999px;
-    box-shadow:0 4px 16px rgba(91,140,255,.4);
-    opacity:0; transform:translateY(-6px) scale(.92);
-    transition:opacity .18s ease, transform .18s ease;
+    color:#fff; font-size:12px; font-weight:800; letter-spacing:.2px;
+    padding:5px 10px; border-radius:999px; white-space:nowrap;
+    box-shadow:0 3px 12px rgba(91,140,255,.35);
+    opacity:0; transform:scale(.9);
+    transition:opacity .16s ease, transform .16s ease;
   }
-  .fx-combo.on{opacity:1; transform:translateY(0) scale(1);}
-  .fx-combo.bump{animation:bump .26s ease-out;}
-  @keyframes bump{40%{transform:scale(1.24);}}
+  .combo-chip.on{opacity:1; transform:scale(1);}
+  .combo-chip.bump{animation:bump .26s ease-out;}
+  @keyframes bump{40%{transform:scale(1.2);}}
 
   /* 효과음 토글 */
   .sound-btn{
@@ -301,14 +313,13 @@
       <div class="timebar-wrap" aria-hidden="true">
         <div class="timebar" id="timebar"></div>
       </div>
+      <div class="combo-chip" id="comboChip" aria-hidden="true"></div>
       <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="효과음 끄기">🔊</button>
     </div>
 
     <div class="board-outer">
       <div class="board" id="board" aria-label="색 타일 격자"></div>
-      <div class="fx" id="fx" aria-hidden="true">
-        <div class="fx-combo" id="comboChip"></div>
-      </div>
+      <div class="fx" id="fx" aria-hidden="true"></div>
       <div class="overlay" id="overlay">
         <div class="big" id="ov-big">색 찾기</div>
         <div class="sub" id="ov-sub">여러 타일 중 <b>딱 하나</b> 다른 색을 찾아 누르세요.<br>연속으로 맞힐수록 시간이 더 채워집니다.</div>
@@ -340,7 +351,7 @@
         틀리면 시간이 깎이고, 시간이 다 되면 게임이 끝납니다. 그때까지 찾아낸 개수가 점수입니다.
       </p>
       <p>
-        연속으로 맞히면 <b>콤보</b>가 쌓입니다. 3연속부터 화면 오른쪽 위에 표시되고,
+        연속으로 맞히면 <b>콤보</b>가 쌓입니다. 3연속부터 시간 바 옆에 표시되고,
         이어갈수록 정답 하나당 채워지는 시간이 조금씩 늘어납니다.
         반대로 후반부로 갈수록 기본 회복량은 줄어들기 때문에,
         <b>오래 버티려면 실수 없이 이어가는 것이 결정적</b>입니다. 한 번 틀리면 콤보는 0으로 돌아갑니다.
@@ -626,6 +637,7 @@
   const START_TIME = 15;   // 시작 제한시간(초), 바 최대 기준
   const PENALTY = 2.5;     // 오답 시 시간 -
   const COMBO_MIN = 3;     // 이 연속부터 콤보 표시 + 추가 시간
+  const HIT_DELAY = 70;    // 정답 후 판을 갈기까지(ms). 이 동안 시계는 멈춘다.
 
   let level = 0;
   let score = 0;
@@ -636,6 +648,8 @@
   let oddColor = '#fff';
   let lastN = 0;
   let running = false;
+  let locked = false;        // 정답 연출 중 입력 차단
+  let pendingRender = null;
   let rafId = null;
   let lastT = 0;
 
@@ -745,19 +759,33 @@
     if (!lastT) lastT = t;
     const dt = (t - lastT) / 1000;
     lastT = t;
-    timeLeft -= dt;
-    if (timeLeft <= 0) {
-      timeLeft = 0;
-      updateBar();
-      gameOver();
-      return;
+    // 정답 연출로 입력이 잠긴 동안에는 시계를 멈춘다.
+    // 연출 때문에 손해를 보면 안 되고, 이전 버전 기록과의 비교 가능성도 유지된다.
+    if (!locked) {
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        updateBar();
+        gameOver();
+        return;
+      }
     }
     updateBar();
     rafId = requestAnimationFrame(loop);
   };
 
-  const onTileDown = (e) => {
+  // 정답 연출이 끝나는 시점: 새 판을 깔고, 그 위에서 터짐 연출을 마무리한다
+  const commitHit = (at, color) => {
+    pendingRender = null;
+    locked = false;
     if (!running) return;
+    renderStage();
+    flashAt(at, false);
+    ringAt(at.cx, at.cy, color);
+  };
+
+  const onTileDown = (e) => {
+    if (!running || locked) return;
     const btn = e.target.closest('.tile');
     if (!btn) return;
     const i = parseInt(btn.dataset.i, 10);
@@ -768,7 +796,7 @@
     if (isHit) sfx.correct(combo + 1); else sfx.wrong();
 
     const at = rectOf(btn);
-    flashAt(at, !isHit);
+    if (!isHit) flashAt(at, true);   // 정답의 터짐 연출은 눌림이 끝난 뒤로 미룬다
 
     if (isHit) {
       // 정답: 콤보가 이어질수록 채워지는 시간이 조금씩 늘어난다
@@ -782,11 +810,18 @@
       scoreEl.textContent = score;
       timeLeft = Math.min(START_TIME, timeLeft + gain);
 
-      ringAt(at.cx, at.cy, oddColor);
       popAt(at.cx, at.cy, '+' + gain.toFixed(1) + 's', 'good');
       updateCombo();
       updateBar();
-      renderStage();
+
+      const color = oddColor;   // renderStage가 덮어쓰기 전에 잡아둔다
+      if (reducedMotion) {
+        commitHit(at, color);
+      } else {
+        btn.classList.add('hit');
+        locked = true;
+        pendingRender = setTimeout(() => commitHit(at, color), HIT_DELAY);
+      }
     } else {
       // 오답: 시간 감소 + 흔들림 피드백, 콤보 끊김
       combo = 0;
@@ -812,6 +847,8 @@
     rafId = null; lastT = 0;
 
     board.classList.remove('danger');
+    if (pendingRender) { clearTimeout(pendingRender); pendingRender = null; }
+    locked = false;
     combo = 0;
     updateCombo();
     sfx.over();
@@ -856,6 +893,8 @@
 
   const startGame = () => {
     sfx.warm();   // 사용자 제스처 안에서 미리 열어둬야 첫 타격이 늦지 않다
+    if (pendingRender) { clearTimeout(pendingRender); pendingRender = null; }
+    locked = false;
     level = 0;
     score = 0;
     combo = 0;
@@ -866,7 +905,7 @@
     lastT = 0;
     scoreEl.textContent = '0';
     // 이전 판에 남은 연출 조각 정리
-    Array.prototype.slice.call(fx.children).forEach(el => { if (el !== comboChip) fx.removeChild(el); });
+    while (fx.firstChild) fx.removeChild(fx.firstChild);
     updateCombo();
     overlay.classList.add('hidden');
     ovSub.classList.remove('hidden');
