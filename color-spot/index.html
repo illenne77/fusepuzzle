@@ -495,13 +495,38 @@
   })();
 
   // --- 효과음 · 진동 (한 토글로 함께 켜고 끈다) ---
-  // 타격감이 목표라 지연을 줄이는 데 초점을 맞췄다.
-  //  · 컨텍스트는 '시작' 버튼(사용자 제스처) 때 미리 열어둔다. 첫 타격에서 만들면 그만큼 늦다.
-  //  · 어택은 1.5ms 선형. 0에 가까운 값에서 지수로 올리면 실제보다 늦게 들린다.
-  //  · 배음을 짧게 얹어 시작점을 뾰족하게 만든다. 순수 사인파는 트랜지언트가 없어 물렁하다.
+  // 단순 비프 대신 벨/마림바 계열로 만든다. 핵심은 네 가지.
+  //  · 배음을 정수배가 아니라 살짝 어긋나게 쌓는다(2.01, 3.03). 정수배만 쌓으면 오르간처럼 밋밋하다.
+  //  · 콤보 음정을 반음이 아니라 5음 음계로 올린다. 어떤 순서로 울려도 불협이 생기지 않는다.
+  //  · 짧은 리버브를 걸어 공간을 준다. '생성된 소리'와 '녹음된 소리'의 차이가 대부분 여기서 온다.
+  //  · 마지막에 부드럽게 눌러 연타로 소리가 겹쳐도 찢어지지 않게 한다.
+  // 지연은 그대로 유지 — 어택 1.5ms, 컨텍스트는 시작 버튼에서 미리 연다.
   const sfx = (() => {
-    let ctx = null, master = null;
+    let ctx = null, dry = null, send = null, out = null, nBuf = null;
     let on = store.get('colorspot_sound') !== 'off';
+
+    // 임펄스 응답을 즉석에서 만든다(외부 파일 없이 리버브를 쓰기 위해).
+    const makeIR = (c) => {
+      const len = Math.floor(c.sampleRate * 0.7);
+      const b = c.createBuffer(2, len, c.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = b.getChannelData(ch);
+        for (let i = 0; i < len; i++) {
+          const fade = i < 120 ? i / 120 : 1;            // 앞머리를 살짝 눕혀 튀는 소리를 없앤다
+          d[i] = (Math.random() * 2 - 1) * fade * Math.pow(1 - i / len, 3.2);
+        }
+      }
+      return b;
+    };
+
+    const noise = (c) => {
+      if (nBuf) return nBuf;
+      const len = Math.floor(c.sampleRate * 0.2);
+      nBuf = c.createBuffer(1, len, c.sampleRate);
+      const d = nBuf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      return nBuf;
+    };
 
     const build = () => {
       if (ctx) return ctx;
@@ -509,10 +534,28 @@
       if (!AC) return null;
       try {
         ctx = new AC({ latencyHint: 'interactive' });
-        master = ctx.createGain();
-        master.gain.value = 0.9;
-        master.connect(ctx.destination);
-      } catch { ctx = null; master = null; }
+
+        // 연타로 소리가 겹쳐도 찢어지지 않게 마지막에 부드럽게 눌러준다.
+        // DynamicsCompressor는 룩어헤드 때문에 6ms가 붙는다 — 지연을 줄여놓은 걸
+        // 되돌리게 되므로 쓰지 않고, 지연이 없는 WaveShaper로 대신한다.
+        const shaper = ctx.createWaveShaper();
+        const N = 1024, curve = new Float32Array(N), k = 1.7, norm = Math.tanh(k);
+        for (let i = 0; i < N; i++) curve[i] = Math.tanh(((i / (N - 1)) * 2 - 1) * k) / norm;
+        shaper.curve = curve;
+        shaper.oversample = 'none';
+
+        out = ctx.createGain(); out.gain.value = 0.9;
+        shaper.connect(out); out.connect(ctx.destination);
+
+        dry = ctx.createGain(); dry.gain.value = 1;
+        dry.connect(shaper);
+
+        const verb = ctx.createConvolver();
+        verb.buffer = makeIR(ctx);
+        const wet = ctx.createGain(); wet.gain.value = 0.22;
+        send = ctx.createGain(); send.gain.value = 1;
+        send.connect(verb); verb.connect(wet); wet.connect(shaper);
+      } catch { ctx = null; dry = send = out = null; }
       return ctx;
     };
 
@@ -523,38 +566,86 @@
         if (c.state === 'suspended') c.resume();
         const src = c.createBufferSource();
         src.buffer = c.createBuffer(1, 1, c.sampleRate);
-        src.connect(master); src.start(0);
+        src.connect(dry); src.start(0);
       } catch {}
     };
 
-    // 한 음. drop으로 피치를 살짝 떨어뜨려 튕기는 느낌을, bright로 배음을 얹어 어택을 세운다.
-    const voice = (freq, o) => {
+    // 벨 한 음. 어긋난 배음 셋을 쌓고, 위 배음일수록 빨리 사라지게 해 금속성 잔향을 만든다.
+    const PARTIALS = [[1, 1, 1], [2.01, 0.30, 0.55], [3.03, 0.12, 0.32]];
+    const bell = (freq, o) => {
       const c = ctx || build(); if (!c) return;
-      const dur = o.dur || 0.11;
+      const dur = o.dur || 0.5, vol = o.vol == null ? 0.16 : o.vol;
       try {
         if (c.state === 'suspended') c.resume();
         const t0 = c.currentTime + (o.at || 0);
-        const osc = c.createOscillator(), g = c.createGain();
-        osc.type = o.type || 'triangle';
-        osc.frequency.setValueAtTime(freq, t0);
-        if (o.drop) osc.frequency.exponentialRampToValueAtTime(freq * o.drop, t0 + dur);
-        g.gain.setValueAtTime(0, t0);
-        g.gain.linearRampToValueAtTime(o.vol, t0 + 0.0015);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(g); g.connect(master);
-        osc.start(t0); osc.stop(t0 + dur + 0.02);
 
-        if (o.bright) {
-          const o2 = c.createOscillator(), g2 = c.createGain();
-          o2.type = 'square';
-          o2.frequency.setValueAtTime(freq * 4, t0);
-          g2.gain.setValueAtTime(0, t0);
-          g2.gain.linearRampToValueAtTime(o.bright, t0 + 0.001);
-          g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.024);
-          o2.connect(g2); g2.connect(master);
-          o2.start(t0); o2.stop(t0 + 0.05);
+        const lp = c.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = Math.min(9000, freq * 6.5);
+        lp.Q.value = 0.5;
+
+        // 감쇠는 배음별로만 준다. 여기에 전체 포락선까지 겹쳐 걸면
+        // 지수 감쇠가 두 번 곱해져서 벨이 아니라 비프 길이로 죽어버린다.
+        const g = c.createGain();
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(vol, t0 + 0.0015);   // 어택은 그대로 1.5ms
+        lp.connect(g);
+        g.connect(dry);
+        g.connect(send);
+
+        let last = null, longest = 0;
+        for (const [ratio, amp, dec] of PARTIALS) {
+          const osc = c.createOscillator(), pg = c.createGain();
+          const life = dur * dec;
+          osc.type = 'sine';
+          // 아주 짧은 피치 하강 — 말렛으로 때린 듯한 시작을 만든다
+          osc.frequency.setValueAtTime(freq * ratio * 1.006, t0);
+          osc.frequency.exponentialRampToValueAtTime(freq * ratio, t0 + 0.035);
+          pg.gain.setValueAtTime(amp, t0);
+          pg.gain.exponentialRampToValueAtTime(amp * 0.0005, t0 + life);
+          osc.connect(pg); pg.connect(lp);
+          osc.start(t0); osc.stop(t0 + life + 0.03);
+          if (life > longest) { longest = life; last = osc; }
         }
+        if (last) last.onended = () => { try { g.disconnect(); lp.disconnect(); } catch {} };
       } catch {}
+    };
+
+    // 오답: 날카로운 부저 대신 낮게 내려앉는 둔탁한 소리
+    const thud = () => {
+      const c = ctx || build(); if (!c) return;
+      try {
+        if (c.state === 'suspended') c.resume();
+        const t0 = c.currentTime;
+
+        const osc = c.createOscillator(), g = c.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(196, t0);
+        osc.frequency.exponentialRampToValueAtTime(88, t0 + 0.22);
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.24, t0 + 0.002);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.30);
+        osc.connect(g); g.connect(dry); g.connect(send);
+        osc.start(t0); osc.stop(t0 + 0.34);
+        osc.onended = () => { try { g.disconnect(); } catch {} };
+
+        // 저역만 남긴 짧은 노이즈로 '툭' 하는 질감을 더한다
+        const src = c.createBufferSource(); src.buffer = noise(c);
+        const nf = c.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 620;
+        const ng = c.createGain();
+        ng.gain.setValueAtTime(0.16, t0);
+        ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.13);
+        src.connect(nf); nf.connect(ng); ng.connect(dry);
+        src.start(t0); src.stop(t0 + 0.16);
+        src.onended = () => { try { ng.disconnect(); nf.disconnect(); } catch {} };
+      } catch {}
+    };
+
+    // 콤보 음정: 5음 음계(장조 펜타토닉). 반음계와 달리 어떤 순서로 울려도 듣기 좋다.
+    const PENTA = [0, 2, 4, 7, 9];
+    const comboNote = (n) => {
+      const i = Math.min(Math.max(n - 1, 0), 9);
+      return 440 * Math.pow(2, (PENTA[i % 5] + 12 * Math.floor(i / 5)) / 12);
     };
 
     const buzz = (pattern) => {
@@ -565,26 +656,25 @@
       isOn: () => on,
       warm,
       toggle(){ on = !on; store.set('colorspot_sound', on ? 'on' : 'off'); if (on) warm(); return on; },
-      // 콤보가 쌓일수록 음이 반음씩 올라간다
       correct(c){
         if (!on) return;
-        voice(523.25 * Math.pow(2, Math.min(c, 12) / 12), { dur:0.10, vol:0.20, drop:0.9, bright:0.035 });
+        bell(comboNote(c), { dur: 0.5, vol: 0.17 });
         buzz(26);
       },
       wrong(){
         if (!on) return;
-        voice(160, { type:'square', dur:0.17, vol:0.12, drop:0.6 });
+        thud();
         buzz([30, 45, 30]);
       },
       level(){
         if (!on) return;
-        voice(784,    { dur:0.09, vol:0.13, bright:0.03 });
-        voice(1046.5, { dur:0.14, vol:0.11, at:0.085, bright:0.025 });
+        bell(880,    { dur: 0.34, vol: 0.13 });
+        bell(1318.5, { dur: 0.52, vol: 0.12, at: 0.09 });
       },
       over(){
         if (!on) return;
-        voice(392,   { type:'sine', dur:0.17, vol:0.15 });
-        voice(311.1, { type:'sine', dur:0.30, vol:0.14, at:0.15 });
+        bell(659.3, { dur: 0.5, vol: 0.14 });
+        bell(440,   { dur: 0.9, vol: 0.15, at: 0.16 });
       }
     };
   })();
