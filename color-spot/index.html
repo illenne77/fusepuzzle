@@ -24,8 +24,8 @@
 <link rel="canonical" href="https://fusepuzzle.com/color-spot/">
 <meta property="og:url" content="https://fusepuzzle.com/color-spot/">
 <meta property="og:title" content="색 찾기 — 다른 색 하나 찾기 게임 | Fuse">
-<meta property="og:description" content="거의 같은 색 타일 사이에서 다른 색 하나를 찾는 순간 집중력 게임. 단계가 오를수록 색 차이가 줄어듭니다.">
-<meta name="description" content="비슷한 색 타일 중 미묘하게 다른 하나를 빠르게 찾는 집중력·지각력 게임. 설치 없이 즐기는 무료 웹 색 찾기.">
+<meta property="og:description" content="거의 같은 색 타일 사이에서 다른 색 하나를 찾는 순간 집중력 게임. 매일 모두가 같은 10판을 푸는 오늘의 도전, 친구에게 같은 판을 보내는 도전장 링크.">
+<meta name="description" content="비슷한 색 타일 중 미묘하게 다른 하나를 빠르게 찾는 집중력·지각력 게임. 매일 모두가 같은 문제를 푸는 오늘의 도전과, 친구에게 같은 판을 보내는 도전장 링크까지. 설치 없이 즐기는 무료 웹 색 찾기.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -74,6 +74,36 @@
   }
   .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
   .score .val{font-size:22px; font-weight:700; line-height:1.1; margin-top:2px;}
+
+  /* 모드 선택 */
+  .modes{display:flex; gap:6px; margin-bottom:12px;}
+  .mode{
+    flex:1; min-width:0; font-family:inherit; font-size:13px; font-weight:600;
+    color:var(--muted); background:var(--panel);
+    border:1px solid rgba(255,255,255,.06); border-radius:9px;
+    padding:9px 4px; cursor:pointer; white-space:nowrap;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .mode:hover{color:var(--ink);}
+  .mode.on{color:#fff; background:linear-gradient(120deg, var(--accent), var(--accent-2)); border-color:transparent;}
+  .mode:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  /* 도전장 만들기 */
+  .maker{display:flex; flex-direction:column; gap:8px; width:100%; max-width:280px; margin-top:10px;}
+  .maker-diffs{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+  .diff{
+    font-family:inherit; font-size:12px; font-weight:600; color:var(--muted);
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+    border-radius:8px; padding:8px 4px; cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .diff:hover{color:var(--ink);}
+  .diff.on{color:#fff; background:linear-gradient(120deg, var(--accent), var(--accent-2)); border-color:transparent;}
+  .diff:focus-visible{outline:2px solid #fff; outline-offset:1px;}
+  .maker-link{
+    font-size:11px; color:var(--muted); word-break:break-all; line-height:1.5;
+    background:rgba(0,0,0,.3); border-radius:8px; padding:8px 10px; text-align:left;
+  }
 
   /* 남은 시간 바 + 효과음 토글 */
   .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
@@ -299,15 +329,21 @@
       </div>
       <div class="scores">
         <div class="score">
-          <div class="label">점수</div>
+          <div class="label" id="scoreLabel">점수</div>
           <div class="val" id="score">0</div>
         </div>
         <div class="score">
-          <div class="label">최고</div>
+          <div class="label" id="bestLabel">최고</div>
           <div class="val" id="best">0</div>
         </div>
       </div>
     </header>
+
+    <div class="modes" id="modes" role="group" aria-label="게임 모드">
+      <button class="mode on" id="m-endless" type="button" data-mode="endless" aria-pressed="true">끝없이</button>
+      <button class="mode" id="m-daily" type="button" data-mode="daily" aria-pressed="false">오늘의 도전</button>
+      <button class="mode" id="m-challenge" type="button" data-mode="challenge" aria-pressed="false">도전장</button>
+    </div>
 
     <div class="bar-row">
       <div class="timebar-wrap" aria-hidden="true">
@@ -325,12 +361,17 @@
         <div class="sub" id="ov-sub">여러 타일 중 <b>딱 하나</b> 다른 색을 찾아 누르세요.<br>연속으로 맞힐수록 시간이 더 채워집니다.</div>
         <div class="ov-tier hidden" id="ov-tier"></div>
         <div class="ov-title hidden" id="ov-title"></div>
-        <div class="final hidden" id="ov-final">최종 점수<b id="ov-score">0</b></div>
+        <div class="final hidden" id="ov-final"><span id="ov-final-label">최종 점수</span><b id="ov-score">0</b></div>
         <div class="ov-pct hidden" id="ov-pct"></div>
         <div class="ov-stat hidden" id="ov-stat"></div>
+        <div class="maker hidden" id="maker">
+          <div class="maker-diffs" id="diffRow"></div>
+        </div>
+        <div class="maker-link hidden" id="madeLink"></div>
         <div class="ov-actions">
           <button class="btn-primary" id="startBtn">시작</button>
           <button class="btn-ghost hidden" id="shareBtn">결과 복사</button>
+          <button class="btn-ghost hidden" id="altBtn">도전장 만들기</button>
         </div>
         <div class="ov-note hidden" id="ov-note">* 상위 %는 재미로 보는 추정치예요.</div>
       </div>
@@ -355,6 +396,32 @@
         이어갈수록 정답 하나당 채워지는 시간이 조금씩 늘어납니다.
         반대로 후반부로 갈수록 기본 회복량은 줄어들기 때문에,
         <b>오래 버티려면 실수 없이 이어가는 것이 결정적</b>입니다. 한 번 틀리면 콤보는 0으로 돌아갑니다.
+      </p>
+
+      <h3>세 가지 모드</h3>
+      <p>
+        <b>끝없이</b>는 제한 시간 안에서 계속 이어가는 기본 모드입니다. 위에서 설명한 규칙이 여기에 해당하고,
+        찾은 개수가 점수가 됩니다.
+      </p>
+      <p>
+        <b>오늘의 도전</b>은 <b>그날 접속한 모든 사람이 똑같은 10판</b>을 푸는 모드입니다.
+        판이 같으니 순수하게 시간으로 겨룰 수 있습니다. 실수 한 번에 3초가 더해지고,
+        기록은 <b>하루에 한 번만</b> 남습니다. 이미 마쳤다면 연습으로 다시 할 수 있지만 기록에는 반영되지 않습니다.
+      </p>
+      <p>
+        <b>도전장</b>은 직접 문제를 내는 모드입니다. 난이도를 고르면 링크가 만들어지고,
+        그 링크를 받은 사람은 <b>글자 그대로 똑같은 5판</b>을 풀게 됩니다. 색도 위치도 같습니다.
+        누가 더 빨리 찾는지 겨뤄보세요. 계정도 서버도 필요 없이 링크 하나로 끝납니다.
+      </p>
+
+      <h3>오늘의 도전은 왜 덜 어려운가</h3>
+      <p>
+        끝없이 모드는 색 차이를 2.4%까지 줄이지만, 오늘의 도전은 <b>6% 아래로 내려가지 않습니다.</b>
+        일부러 그렇게 뒀습니다. 그 아래부터는 눈이 아니라 <b>화면이 결과를 가르기 때문</b>입니다.
+        같은 사람이라도 밝은 OLED 화면과 어두운 저가 화면에서 결과가 달라지고,
+        야외인지 실내인지에 따라서도 바뀝니다. 혼자 기록을 재는 데는 상관없지만
+        여러 사람이 같은 문제로 겨루는 모드에서는 공정하지 않습니다.
+        그래서 <b>화면 차이가 끼어들기 전 구간</b>에서 끊었습니다.
       </p>
 
       <h3>더 잘 찾는 요령</h3>
@@ -397,6 +464,7 @@
         그 판의 <b>최고 콤보</b>와 <b>어느 정도의 색 차이까지 구분해냈는지</b>도 함께 나옵니다.
         결과를 복사해 친구에게 보낼 수도 있습니다.
         효과음과 진동은 시간 바 옆 버튼으로 끌 수 있고, 설정은 다음에도 그대로 유지됩니다.
+        오늘의 도전 기록도 브라우저에만 저장되므로, 다른 기기에서는 따로 도전하게 됩니다.
       </p>
     </section>
 
@@ -445,6 +513,14 @@
   const ovStat   = document.getElementById('ov-stat');
   const startBtn = document.getElementById('startBtn');
   const shareBtn = document.getElementById('shareBtn');
+  const ovFinalLabel = document.getElementById('ov-final-label');
+  const altBtn    = document.getElementById('altBtn');
+  const maker     = document.getElementById('maker');
+  const diffRow   = document.getElementById('diffRow');
+  const madeLink  = document.getElementById('madeLink');
+  const scoreLabel= document.getElementById('scoreLabel');
+  const bestLabel = document.getElementById('bestLabel');
+  const modeBtns  = [...document.querySelectorAll('#modes .mode')];
   const fx        = document.getElementById('fx');
   const comboChip = document.getElementById('comboChip');
   const soundBtn  = document.getElementById('soundBtn');
@@ -747,9 +823,65 @@
   if (!Number.isFinite(best)) best = 0;
   bestEl.textContent = best;
 
-  // 난수는 한 곳에서만 뽑는다(나중에 시드 기반 PRNG로 통째로 교체 가능).
-  const rnd = () => Math.random();
+  // 난수는 한 곳에서만 뽑는다. 끝없이 모드는 Math.random,
+  // 오늘의 도전·도전장은 시드를 심어 누구에게나 같은 판이 나오게 한다.
+  const mulberry32 = (a) => () => {
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+  const hashStr = (str) => {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h >>> 0;
+  };
+  let rnd = Math.random;
   const rand = (a, b) => a + rnd() * (b - a);
+
+  // --- 모드 ---
+  // endless   : 기존 무한 생존 (제한시간, 점수 = 찾은 개수)
+  // daily     : 오늘의 도전 — 모두가 같은 10판, 점수 = 총 소요 시간
+  // challenge : 도전장 — 누가 만든 5판, 점수 = 소요 시간
+  let mode = 'endless';
+  let run = null;         // 시간 재는 모드에서만 사용
+  let pendingChallenge = null;
+
+  const DAILY_N = 10;
+  const MISS_PENALTY = 3;   // 시간 모드에서 오답 1회당 더해지는 초
+
+  // 오늘의 도전 난이도. 색 차이를 6% 아래로 내리지 않는다 —
+  // 그 아래는 눈이 아니라 화면 밝기·패널이 결과를 가르기 시작해서, 비교가 공정하지 않다.
+  const dailySpec = (i) => ({
+    n: Math.min(6, 3 + Math.floor(i / 2)),
+    delta: 20 - i * 1.4,
+    noise: i < 5 ? 0 : (i - 4) * 0.04
+  });
+
+  // 도전장 난이도 5단계. 만든 사람이 고른다.
+  const CHALLENGE = [
+    { label: '쉬움',   n: 3, delta: 18,  noise: 0 },
+    { label: '보통',   n: 4, delta: 13,  noise: 0.06 },
+    { label: '어려움', n: 5, delta: 10,  noise: 0.12 },
+    { label: '고수',   n: 6, delta: 8,   noise: 0.18 },
+    { label: '악랄',   n: 6, delta: 6.5, noise: 0.26 }
+  ];
+  const CHALLENGE_N = 5;
+
+  const fmtMs = (ms) => {
+    const sec = ms / 1000;
+    if (sec < 60) return sec.toFixed(1) + '초';
+    const m = Math.floor(sec / 60);
+    return m + '분 ' + (sec - m * 60).toFixed(1) + '초';
+  };
+  const todayKey = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  };
+  const readDaily = () => {
+    try { const v = JSON.parse(store.get('colorspot_daily') || 'null');
+      return v && v.d === todayKey() ? v : null; } catch { return null; }
+  };
 
   // --- 난이도: 어느 지점에서도 멈추지 않는다 ---
   // 격자: 2×2 → 6×6 (기존과 동일), 레벨 20부터 7×7로 한 번 더 넓어진다.
@@ -775,9 +907,9 @@
   // - 정답은 '명도 차이'로만 구분된다(색 구분이 어려워도 풀 수 있게).
   // - 나머지 타일에도 각각 다른 흔들림을 줘서, 같은 색 타일이 하나도 없게 만든다.
   //   두 타일만 비교해서는 정답을 특정할 수 없다.
-  const makeStage = (lv, count, odd) => {
-    const delta = deltaFor(lv);
-    const jitter = delta * noiseFor(lv);
+  const makeStage = (spec, count, odd) => {
+    const delta = spec.delta;
+    const jitter = delta * spec.noise;
 
     const h = Math.floor(rnd() * 360);
     const sat = rand(58, 70);
@@ -810,11 +942,17 @@
     }
   };
 
+  // 현재 판의 사양. 시간 모드에서는 미리 정해둔 목록에서, 끝없이 모드에서는 레벨 곡선에서 가져온다.
+  const specNow = () => run
+    ? run.specs[Math.min(run.i, run.specs.length - 1)]
+    : { n: gridFor(level), delta: deltaFor(level), noise: noiseFor(level) };
+
   const renderStage = () => {
-    const n = gridFor(level);
+    const spec = specNow();
+    const n = spec.n;
     const count = n * n;
     oddIndex = Math.floor(rnd() * count);
-    const stage = makeStage(level, count, oddIndex);
+    const stage = makeStage(spec, count, oddIndex);
     oddColor = stage.oddColor;
 
     // 격자가 넓어진 순간을 알려준다(첫 판은 제외)
@@ -838,14 +976,27 @@
   };
 
   const updateBar = () => {
+    if (run) {   // 시간 모드에서는 남은 시간이 아니라 진행률을 보여준다
+      timebar.style.transform = `scaleX(${run.i / run.specs.length})`;
+      timebar.classList.remove('low');
+      board.classList.remove('danger');
+      return;
+    }
     const ratio = Math.max(0, Math.min(1, timeLeft / START_TIME));
     timebar.style.transform = `scaleX(${ratio})`;
     timebar.classList.toggle('low', ratio < 0.3);
     board.classList.toggle('danger', running && timeLeft < 3.5);
   };
 
+  const runElapsed = () => performance.now() - run.t0 - run.frozen;
+
   const loop = (t) => {
     if (!running) return;
+    if (run) {                       // 시간 모드: 카운트다운이 아니라 경과 시간
+      scoreEl.textContent = (runElapsed() / 1000).toFixed(1);
+      rafId = requestAnimationFrame(loop);
+      return;
+    }
     if (!lastT) lastT = t;
     const dt = (t - lastT) / 1000;
     lastT = t;
@@ -865,10 +1016,18 @@
   };
 
   // 정답 연출이 끝나는 시점: 새 판을 깔고, 그 위에서 터짐 연출을 마무리한다
+  const clearPending = () => {
+    if (pendingRender) { clearTimeout(pendingRender); pendingRender = null; }
+    locked = false;
+  };
+
+  // 정답 연출이 끝나는 시점: 새 판을 깔고, 그 위에서 터짐 연출을 마무리한다
   const commitHit = (at, color) => {
     pendingRender = null;
     locked = false;
+    if (run && run.lockAt) { run.frozen += performance.now() - run.lockAt; run.lockAt = 0; }
     if (!running) return;
+    if (run && run.i >= run.specs.length) { finishRun(); return; }
     renderStage();
     flashAt(at, false);
     ringAt(at.cx, at.cy, color);
@@ -889,18 +1048,23 @@
     if (!isHit) flashAt(at, true);   // 정답의 터짐 연출은 눌림이 끝난 뒤로 미룬다
 
     if (isHit) {
-      // 정답: 콤보가 이어질수록 채워지는 시간이 조금씩 늘어난다
       combo++;
       if (combo > maxCombo) maxCombo = combo;
-      const extra = combo >= COMBO_MIN ? Math.min(combo - COMBO_MIN + 1, 10) * 0.05 : 0;
-      const gain = bonusFor(level) + extra;
 
-      score++;
-      level++;
-      scoreEl.textContent = score;
-      timeLeft = Math.min(START_TIME, timeLeft + gain);
-
-      popAt(at.cx, at.cy, '+' + gain.toFixed(1) + 's', 'good');
+      if (run) {
+        run.i++;
+        bestEl.textContent = run.i + '/' + run.specs.length;
+        popAt(at.cx, at.cy, run.i + ' / ' + run.specs.length, 'good');
+      } else {
+        // 끝없이 모드: 콤보가 이어질수록 채워지는 시간이 조금씩 늘어난다
+        const extra = combo >= COMBO_MIN ? Math.min(combo - COMBO_MIN + 1, 10) * 0.05 : 0;
+        const gain = bonusFor(level) + extra;
+        score++;
+        level++;
+        scoreEl.textContent = score;
+        timeLeft = Math.min(START_TIME, timeLeft + gain);
+        popAt(at.cx, at.cy, '+' + gain.toFixed(1) + 's', 'good');
+      }
       updateCombo();
       updateBar();
 
@@ -910,35 +1074,157 @@
       } else {
         btn.classList.add('hit');
         locked = true;
+        if (run) run.lockAt = performance.now();
         pendingRender = setTimeout(() => commitHit(at, color), HIT_DELAY);
       }
     } else {
-      // 오답: 시간 감소 + 흔들림 피드백, 콤보 끊김
+      // 오답: 콤보가 끊기고, 끝없이 모드는 시간이 깎이고 시간 모드는 벌점이 붙는다
       combo = 0;
       updateCombo();
-      timeLeft -= PENALTY;
       btn.classList.add('wrong');
       setTimeout(() => btn.classList.remove('wrong'), 300);
       ringAt(at.cx, at.cy, 'rgba(238,90,84,.9)');
-      popAt(at.cx, at.cy, '−' + PENALTY.toFixed(1) + 's', 'bad');
-      if (timeLeft <= 0) {
-        timeLeft = 0;
-        updateBar();
-        gameOver();
+
+      if (run) {
+        run.mistakes++;
+        popAt(at.cx, at.cy, '+' + MISS_PENALTY + 's', 'bad');
       } else {
-        updateBar();
+        timeLeft -= PENALTY;
+        popAt(at.cx, at.cy, '−' + PENALTY.toFixed(1) + 's', 'bad');
+        if (timeLeft <= 0) { timeLeft = 0; updateBar(); gameOver(); return; }
       }
+      updateBar();
     }
   };
 
+  // ---------- 오버레이 상태 ----------
+  const OV_ALL = () => [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn, altBtn, maker, madeLink];
+  let startAction = () => {};
+  let altAction = null;
+
+  const showOverlay = (cfg) => {
+    OV_ALL().forEach(el => el.classList.add('hidden'));
+    ovBig.textContent = cfg.big;
+    if (cfg.sub) { ovSub.innerHTML = cfg.sub; ovSub.classList.remove('hidden'); }
+    else ovSub.classList.add('hidden');
+    (cfg.show || []).forEach(el => el.classList.remove('hidden'));
+    startBtn.textContent = cfg.start || '시작';
+    startAction = cfg.onStart || (() => {});
+    if (cfg.alt) { altBtn.textContent = cfg.alt; altBtn.classList.remove('hidden'); altAction = cfg.onAlt; }
+    else altAction = null;
+    board.classList.remove('danger');
+    overlay.classList.remove('hidden');
+  };
+
+  // ---------- 상단 표시 ----------
+  const paintHud = () => {
+    if (mode === 'endless') {
+      scoreLabel.textContent = '점수'; bestLabel.textContent = '최고';
+      scoreEl.textContent = running ? score : 0;
+      bestEl.textContent = best;
+    } else {
+      scoreLabel.textContent = '시간'; bestLabel.textContent = '판';
+      scoreEl.textContent = run ? (runElapsed() / 1000).toFixed(1) : '0.0';
+      bestEl.textContent = run ? (run.i + '/' + run.specs.length)
+        : (mode === 'daily' ? DAILY_N : CHALLENGE_N);
+    }
+  };
+
+  // ---------- 시간 모드 실행 ----------
+  const startRun = (specs, kind, seed, diff) => {
+    sfx.warm();
+    clearPending();
+    rnd = mulberry32(seed >>> 0);
+    run = { specs, kind, seed, diff, i: 0, mistakes: 0, t0: performance.now(), frozen: 0, lockAt: 0 };
+    running = true;
+    level = 0; combo = 0; maxCombo = 0; lastN = 0;
+    while (fx.firstChild) fx.removeChild(fx.firstChild);
+    updateCombo();
+    paintHud();
+    overlay.classList.add('hidden');
+    updateBar();
+    renderStage();
+    rafId = requestAnimationFrame(loop);
+  };
+
+  const runTier = (avgSec) => {
+    if (avgSec < 1.5) return { emoji:'🧠', title:'매의 눈' };
+    if (avgSec < 2.5) return { emoji:'🏆', title:'마스터' };
+    if (avgSec < 4)   return { emoji:'💎', title:'전문가' };
+    if (avgSec < 6)   return { emoji:'🥇', title:'숙련' };
+    if (avgSec < 9)   return { emoji:'🥈', title:'견습' };
+    return { emoji:'🥉', title:'초보' };
+  };
+
+  let lastResult = null;
+
+  const finishRun = () => {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    clearPending();
+    combo = 0; updateCombo();
+    sfx.over();
+    // 마지막 판은 다시 그리지 않으므로 눌림 상태가 남는다. 여기서 걷어낸다.
+    const pressed = board.querySelector('.tile.hit');
+    if (pressed) pressed.classList.remove('hit');
+
+    const penalty = run.mistakes * MISS_PENALTY * 1000;
+    const total = runElapsed() + penalty;
+    const n = run.specs.length;
+    const tier = runTier(total / n / 1000);
+    const kind = run.kind, diff = run.diff, seed = run.seed;
+
+    // 오늘의 도전은 그날의 첫 완주만 기록으로 남긴다
+    let official = false;
+    if (kind === 'daily' && !readDaily()) {
+      official = true;
+      try { store.set('colorspot_daily', JSON.stringify({ d: todayKey(), ms: Math.round(total), m: run.mistakes })); } catch {}
+    }
+
+    lastResult = { kind, diff, seed, total, mistakes: run.mistakes, n, tier, official };
+    run = null;
+    paintHud();
+
+    ovFinalLabel.textContent = '기록';
+    ovScore.textContent = fmtMs(total);
+    ovTier.textContent = tier.emoji;
+    ovTitle.textContent = (official ? '오늘의 기록! · ' : '') + tier.title;
+    ovStat.textContent = n + '판 · 실수 ' + lastResult.mistakes + '회'
+      + (lastResult.mistakes ? ' (+' + (penalty / 1000) + '초)' : '')
+      + (kind === 'challenge' ? ' · ' + CHALLENGE[diff].label : '');
+
+    showOverlay({
+      big: '완료!',
+      show: [ovTier, ovTitle, ovFinal, ovStat, shareBtn],
+      start: kind === 'daily' && !official ? '연습으로 다시' : '다시 하기',
+      onStart: () => (kind === 'daily' ? startDaily(true) : startChallenge(seed, diff)),
+      alt: '도전장 만들기',
+      onAlt: openMaker
+    });
+  };
+
+  const startDaily = (practice) => {
+    const specs = Array.from({ length: DAILY_N }, (_, i) => dailySpec(i));
+    // 연습은 기록에 남지 않으므로 매번 다른 판을 준다
+    const seed = practice ? (Math.random() * 4294967296) >>> 0 : hashStr('cs-daily-' + todayKey());
+    startRun(specs, practice ? 'practice' : 'daily', seed, -1);
+  };
+
+  const startChallenge = (seed, diff) => {
+    const c = CHALLENGE[diff];
+    const specs = Array.from({ length: CHALLENGE_N }, () => ({ n: c.n, delta: c.delta, noise: c.noise }));
+    startRun(specs, 'challenge', seed, diff);
+  };
+
+  // ---------- 끝없이 모드 ----------
   const gameOver = () => {
     running = false;
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null; lastT = 0;
 
     board.classList.remove('danger');
-    if (pendingRender) { clearTimeout(pendingRender); pendingRender = null; }
-    locked = false;
+    clearPending();
     combo = 0;
     updateCombo();
     sfx.over();
@@ -950,62 +1236,183 @@
       bestEl.textContent = best;
     }
 
-    // 결과 카드: 등급/칭호 + 상위 %
     const tier = tierFor(score);
     const pct = percentileFor(score);
-    ovBig.textContent = '게임 오버!';
-    ovSub.classList.add('hidden');
+    lastResult = null;
+    ovFinalLabel.textContent = '최종 점수';
+    ovScore.textContent = score;
     ovTier.textContent = tier.emoji;
     ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
-    ovScore.textContent = score;
     ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
     ovStat.textContent = '최고 콤보 ' + maxCombo + '연속 · 색 차이 ' + deltaFor(level).toFixed(1) + '%까지';
-    [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn].forEach(el => el.classList.remove('hidden'));
-    startBtn.textContent = '다시 하기';
-    overlay.classList.remove('hidden');
+
+    showOverlay({
+      big: '게임 오버!',
+      show: [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn],
+      start: '다시 하기',
+      onStart: startEndless
+    });
   };
 
-  // 결과 공유(Web Share 우선, 미지원 시 클립보드 복사)
-  const shareResult = async () => {
-    const tier = tierFor(score);
-    const pct = percentileFor(score);
-    const text = `색 찾기 게임에서 ${score}개 발견! ${tier.emoji} ${tier.title} (상위 ${pct}%)\n최고 콤보 ${maxCombo}연속 · 색 차이 ${deltaFor(level).toFixed(1)}%까지\nhttps://fusepuzzle.com/color-spot/`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ text });
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        shareBtn.textContent = '복사됨!';
-        setTimeout(() => { shareBtn.textContent = '결과 복사'; }, 1500);
-      }
-    } catch {}
-  };
-
-  const startGame = () => {
+  const startEndless = () => {
     sfx.warm();   // 사용자 제스처 안에서 미리 열어둬야 첫 타격이 늦지 않다
-    if (pendingRender) { clearTimeout(pendingRender); pendingRender = null; }
-    locked = false;
-    level = 0;
-    score = 0;
-    combo = 0;
-    maxCombo = 0;
-    lastN = 0;
+    clearPending();
+    rnd = Math.random;
+    run = null;
+    level = 0; score = 0; combo = 0; maxCombo = 0; lastN = 0;
     timeLeft = START_TIME;
     running = true;
     lastT = 0;
     scoreEl.textContent = '0';
-    // 이전 판에 남은 연출 조각 정리
     while (fx.firstChild) fx.removeChild(fx.firstChild);
     updateCombo();
     overlay.classList.add('hidden');
-    ovSub.classList.remove('hidden');
-    [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn].forEach(el => el.classList.add('hidden'));
     updateBar();
     renderStage();
     rafId = requestAnimationFrame(loop);
   };
 
-  // 입력: pointerdown(마우스·터치 즉시 반응) + 클릭(키보드 접근성) 위임
+  // ---------- 도전장 만들기 ----------
+  let makeDiff = 2;
+  const challengeUrl = (seed, diff) =>
+    location.origin + location.pathname + '?c=' + (seed >>> 0).toString(36) + '.' + diff;
+
+  const paintDiffs = () => {
+    diffRow.innerHTML = CHALLENGE.map((c, i) =>
+      `<button class="diff${i === makeDiff ? ' on' : ''}" type="button" data-d="${i}">${c.label}</button>`).join('');
+  };
+  diffRow.addEventListener('click', (e) => {
+    const b = e.target.closest('.diff'); if (!b) return;
+    makeDiff = parseInt(b.dataset.d, 10);
+    paintDiffs();
+  });
+
+  const openMaker = () => {
+    paintDiffs();
+    showOverlay({
+      big: '도전장 만들기',
+      sub: '난이도를 고르면 링크가 만들어집니다.<br>받은 사람은 <b>똑같은 판</b>을 풀게 됩니다.',
+      show: [maker],
+      start: '만들기',
+      onStart: () => {
+        const seed = (Math.random() * 4294967296) >>> 0;
+        const url = challengeUrl(seed, makeDiff);
+        madeLink.textContent = url;
+        showOverlay({
+          big: '도전장 완성',
+          sub: '이 링크를 보내면 상대가 같은 판에 도전합니다.',
+          show: [madeLink, shareBtn],
+          start: '직접 풀어보기',
+          onStart: () => startChallenge(seed, makeDiff)
+        });
+        shareBtn.textContent = '링크 복사';
+        lastResult = { kind: 'made', seed, diff: makeDiff };
+      }
+    });
+  };
+
+  // ---------- 모드 전환 / 첫 화면 ----------
+  const introEndless = () => showOverlay({
+    big: '색 찾기',
+    sub: '여러 타일 중 <b>딱 하나</b> 다른 색을 찾아 누르세요.<br>연속으로 맞힐수록 시간이 더 채워집니다.',
+    start: '시작', onStart: startEndless
+  });
+
+  const introDaily = () => {
+    const rec = readDaily();
+    if (rec) {
+      ovStat.textContent = '오늘 기록 ' + fmtMs(rec.ms) + ' · 실수 ' + rec.m + '회';
+      showOverlay({
+        big: '오늘의 도전',
+        sub: '오늘 몫은 이미 마쳤습니다.<br>연습은 기록에 남지 않습니다.',
+        show: [ovStat], start: '연습으로 다시', onStart: () => startDaily(true),
+        alt: '도전장 만들기', onAlt: openMaker
+      });
+    } else {
+      showOverlay({
+        big: '오늘의 도전',
+        sub: `모두가 <b>똑같은 ${DAILY_N}판</b>을 풉니다. 빠를수록 좋고,<br>실수 한 번에 ${MISS_PENALTY}초가 더해집니다. 기록은 하루 한 번.`,
+        start: '시작', onStart: () => startDaily(false)
+      });
+    }
+  };
+
+  const introChallenge = () => {
+    if (pendingChallenge) {
+      const { seed, diff } = pendingChallenge;
+      showOverlay({
+        big: '도전장 도착',
+        sub: `누군가 보낸 <b>${CHALLENGE[diff].label}</b> 난이도 ${CHALLENGE_N}판입니다.<br>같은 판이니 시간으로 겨뤄보세요.`,
+        start: '시작', onStart: () => startChallenge(seed, diff),
+        alt: '나도 만들기', onAlt: openMaker
+      });
+    } else {
+      openMaker();
+    }
+  };
+
+  const setMode = (m) => {
+    mode = m;
+    running = false;
+    run = null;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null; lastT = 0;
+    clearPending();
+    combo = 0; updateCombo();
+    board.classList.remove('danger');
+    while (fx.firstChild) fx.removeChild(fx.firstChild);
+    board.innerHTML = '';
+    timebar.style.transform = m === 'endless' ? 'scaleX(1)' : 'scaleX(0)';
+    timebar.classList.remove('low');
+    modeBtns.forEach(b => {
+      const on = b.dataset.mode === m;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    shareBtn.textContent = '결과 복사';
+    paintHud();
+    if (m === 'endless') introEndless();
+    else if (m === 'daily') introDaily();
+    else introChallenge();
+  };
+
+  // ---------- 공유 ----------
+  const copyOrShare = async (text, label) => {
+    try {
+      if (navigator.share) { await navigator.share({ text }); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        const old = shareBtn.textContent;
+        shareBtn.textContent = '복사됨!';
+        setTimeout(() => { shareBtn.textContent = old; }, 1500);
+      }
+    } catch {}
+  };
+
+  const shareResult = () => {
+    const home = 'https://fusepuzzle.com/color-spot/';
+    if (lastResult && lastResult.kind === 'made') {
+      copyOrShare('색 찾기 도전장 [' + CHALLENGE[lastResult.diff].label + '] — 같은 판으로 겨뤄봐요\n'
+        + challengeUrl(lastResult.seed, lastResult.diff));
+      return;
+    }
+    if (lastResult) {
+      const r = lastResult;
+      if (r.kind === 'challenge') {
+        copyOrShare('색 찾기 도전장 [' + CHALLENGE[r.diff].label + '] ' + fmtMs(r.total)
+          + ' · 실수 ' + r.mistakes + '회\n' + challengeUrl(r.seed, r.diff));
+      } else {
+        copyOrShare('색 찾기 ' + (r.kind === 'daily' ? '오늘의 도전' : '연습') + ' ' + fmtMs(r.total)
+          + ' · 실수 ' + r.mistakes + '회 ' + r.tier.emoji + ' ' + r.tier.title + '\n' + home);
+      }
+      return;
+    }
+    const tier = tierFor(score), pct = percentileFor(score);
+    copyOrShare('색 찾기 게임에서 ' + score + '개 발견! ' + tier.emoji + ' ' + tier.title + ' (상위 ' + pct + '%)\n'
+      + '최고 콤보 ' + maxCombo + '연속 · 색 차이 ' + deltaFor(level).toFixed(1) + '%까지\n' + home);
+  };
+
+  // ---------- 바인딩 ----------
   board.addEventListener('pointerdown', onTileDown);
   board.addEventListener('keydown', (e) => {
     if ((e.code === 'Enter' || e.code === 'Space') && e.target.classList.contains('tile')) {
@@ -1013,8 +1420,10 @@
       onTileDown({ target: e.target });
     }
   });
-  startBtn.addEventListener('click', startGame);
+  startBtn.addEventListener('click', () => startAction());
+  altBtn.addEventListener('click', () => { if (altAction) altAction(); });
   shareBtn.addEventListener('click', shareResult);
+  modeBtns.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
   const paintSoundBtn = (on) => {
     soundBtn.textContent = on ? '🔊' : '🔇';
@@ -1024,7 +1433,10 @@
   soundBtn.addEventListener('click', () => paintSoundBtn(sfx.toggle()));
   paintSoundBtn(sfx.isOn());
 
-  updateBar();
+  // 도전장 링크로 들어왔으면 그 모드로 시작한다
+  const cm = /[?&]c=([0-9a-z]+)\.([0-4])(?:&|$)/i.exec(location.search);
+  if (cm) pendingChallenge = { seed: parseInt(cm[1], 36) >>> 0, diff: parseInt(cm[2], 10) };
+  setMode(pendingChallenge ? 'challenge' : 'endless');
 })();
 </script>
 </body>
