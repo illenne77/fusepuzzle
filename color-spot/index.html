@@ -73,7 +73,11 @@
     padding:8px 14px; min-width:64px; text-align:center;
   }
   .score .label{font-size:11px; font-weight:600; letter-spacing:.5px; color:var(--muted); text-transform:uppercase;}
-  .score .val{font-size:22px; font-weight:700; line-height:1.1; margin-top:2px;}
+  .score .val{font-size:22px; font-weight:700; line-height:1.1; margin-top:2px;
+    transition:color .2s ease;}
+  .score .val.ahead{color:#5fe0a0;}
+  .score .val.behind{color:#ff8f89;}
+  .score .val.small{font-size:17px;}
 
   /* 모드 선택 */
   .modes{display:flex; gap:6px; margin-bottom:12px;}
@@ -108,9 +112,16 @@
   /* 남은 시간 바 + 효과음 토글 */
   .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .timebar-wrap{
-    flex:1; min-width:0; height:10px; border-radius:999px;
+    position:relative; flex:1; min-width:0; height:10px; border-radius:999px;
     background:var(--panel); overflow:hidden;
   }
+  /* 상대의 평균 속도를 달리는 표식. 내 막대가 이 선보다 앞서 있으면 이기고 있는 것. */
+  .ghost{
+    position:absolute; top:0; left:0; width:3px; height:100%;
+    background:#fff; box-shadow:0 0 8px rgba(255,255,255,.8);
+    transform:translateX(-1px); pointer-events:none; display:none;
+  }
+  .ghost.on{display:block;}
   .timebar{
     height:100%; width:100%; border-radius:999px;
     background:linear-gradient(90deg, var(--accent), var(--accent-2));
@@ -229,7 +240,7 @@
     position:absolute; inset:0; border-radius:16px;
     background:rgba(16,20,31,.88); backdrop-filter:blur(2px);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:24px; gap:6px;
+    text-align:center; padding:18px; gap:5px; overflow-y:auto;
   }
   .hidden{display:none !important;}
   .overlay .big{font-size:28px; font-weight:800; line-height:1.2;}
@@ -237,12 +248,12 @@
   .overlay .final{
     font-size:15px; color:var(--ink); margin-top:6px;
   }
-  .overlay .final b{font-size:34px; font-weight:800; display:block; margin-top:2px;
+  .overlay .final b{font-size:28px; font-weight:800; display:block; margin-top:2px;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;}
   .overlay .ov-tier{font-size:44px; line-height:1; filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
   .overlay .ov-title{
-    font-size:24px; font-weight:800; line-height:1.15; margin-top:2px;
+    font-size:22px; font-weight:800; line-height:1.2; margin-top:2px;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
@@ -252,7 +263,7 @@
     border-radius:999px; padding:6px 16px; margin-top:8px;
   }
   .overlay .ov-pct b{color:var(--accent);}
-  .ov-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .ov-actions{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; justify-content:center;}
   .btn-primary{
     font-family:inherit; font-weight:700; font-size:15px; color:#fff;
     background:linear-gradient(120deg, var(--accent), var(--accent-2));
@@ -272,6 +283,22 @@
   .btn-ghost:active{transform:translateY(1px);}
   .btn-ghost:focus-visible{outline:2px solid #fff; outline-offset:2px;}
   .ov-stat{font-size:13px; color:var(--muted); margin-top:6px; line-height:1.6;}
+  .ov-verdict{
+    font-size:14px; font-weight:700; margin-top:6px; padding:6px 14px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .ov-verdict.win{color:#5fe0a0; background:rgba(95,224,160,.10); border-color:rgba(95,224,160,.3);}
+  .ov-verdict.lose{color:#ff8f89; background:rgba(255,143,137,.08); border-color:rgba(255,143,137,.28);}
+  .ov-target{
+    font-size:15px; font-weight:700; color:var(--ink);
+    background:var(--panel); border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius); padding:9px 16px; margin-top:8px; line-height:1.45;
+  }
+  .ov-target b{
+    font-size:25px; display:block; margin-top:2px;
+    background:linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
   .ov-note{font-size:11px; color:var(--muted); margin-top:10px; opacity:.8;}
 
 
@@ -311,6 +338,18 @@
   footer a{color:var(--ink); text-decoration:none; transition:color .2s;}
   footer a:hover{color:var(--accent);}
 
+  /* 아주 좁은 화면에서는 결과 카드가 판 밖으로 넘친다. 한 단계 더 줄인다. */
+  @media(max-width:340px){
+    .overlay{padding:10px; gap:3px;}
+    .overlay .big{font-size:24px;}
+    .overlay .ov-title{font-size:19px;}
+    .overlay .final b{font-size:24px;}
+    .overlay .final{font-size:14px;}
+    .ov-verdict{font-size:13px; padding:5px 12px;}
+    .btn-primary{padding:10px 18px; font-size:14px;}
+    .btn-ghost{padding:10px 14px; font-size:13px;}
+  }
+
   @media(prefers-reduced-motion:reduce){
     *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
     .tile.wrong{animation:none; outline:3px solid var(--bad); outline-offset:-3px;}
@@ -348,6 +387,7 @@
     <div class="bar-row">
       <div class="timebar-wrap" aria-hidden="true">
         <div class="timebar" id="timebar"></div>
+        <div class="ghost" id="ghost" aria-hidden="true"></div>
       </div>
       <div class="combo-chip" id="comboChip" aria-hidden="true"></div>
       <button class="sound-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="효과음 끄기">🔊</button>
@@ -363,6 +403,8 @@
         <div class="ov-title hidden" id="ov-title"></div>
         <div class="final hidden" id="ov-final"><span id="ov-final-label">최종 점수</span><b id="ov-score">0</b></div>
         <div class="ov-pct hidden" id="ov-pct"></div>
+        <div class="ov-target hidden" id="ov-target"></div>
+        <div class="ov-verdict hidden" id="ov-verdict"></div>
         <div class="ov-stat hidden" id="ov-stat"></div>
         <div class="maker hidden" id="maker">
           <div class="maker-diffs" id="diffRow"></div>
@@ -409,9 +451,20 @@
         기록은 <b>하루에 한 번만</b> 남습니다. 이미 마쳤다면 연습으로 다시 할 수 있지만 기록에는 반영되지 않습니다.
       </p>
       <p>
-        <b>도전장</b>은 직접 문제를 내는 모드입니다. 난이도를 고르면 링크가 만들어지고,
-        그 링크를 받은 사람은 <b>글자 그대로 똑같은 5판</b>을 풀게 됩니다. 색도 위치도 같습니다.
-        누가 더 빨리 찾는지 겨뤄보세요. 계정도 서버도 필요 없이 링크 하나로 끝납니다.
+        <b>도전장</b>은 아는 사람에게 직접 승부를 거는 모드입니다.
+        난이도를 고른 뒤 <b>내가 먼저 5판을 풉니다.</b> 그 기록이 링크에 실려 나가고,
+        받은 사람은 <b>글자 그대로 똑같은 5판</b>을 풀며 그 기록을 이기려 합니다. 색도 위치도 같습니다.
+      </p>
+      <p>
+        문제만 보내면 그냥 퍼즐 하나일 뿐이라 겨룰 대상이 없습니다. 그래서 <b>기록을 함께 보냅니다.</b>
+        도전을 받은 사람은 시작 전에 이겨야 할 시간을 보고, 푸는 동안에도
+        시간 바 위의 <b>흰 표식</b>으로 상대의 평균 속도를 확인할 수 있습니다.
+        내 막대가 그 표식보다 앞서 있으면 이기고 있는 것이고, 시간 숫자도 초록으로 바뀝니다.
+        끝나면 몇 초 차이로 이겼는지 졌는지가 나오고, 곧바로 <b>되받아치기</b>로 새 판을 걸 수 있습니다.
+      </p>
+      <p>
+        계정도 서버도 필요 없습니다. 링크 안에 판을 만드는 씨앗과 기록만 담겨 있어서,
+        주소를 복사해 보내는 것만으로 승부가 성립합니다.
       </p>
 
       <h3>오늘의 도전은 왜 덜 어려운가</h3>
@@ -514,6 +567,9 @@
   const startBtn = document.getElementById('startBtn');
   const shareBtn = document.getElementById('shareBtn');
   const ovFinalLabel = document.getElementById('ov-final-label');
+  const ovTarget  = document.getElementById('ov-target');
+  const ovVerdict = document.getElementById('ov-verdict');
+  const ghost     = document.getElementById('ghost');
   const altBtn    = document.getElementById('altBtn');
   const maker     = document.getElementById('maker');
   const diffRow   = document.getElementById('diffRow');
@@ -874,6 +930,12 @@
     const m = Math.floor(sec / 60);
     return m + '분 ' + (sec - m * 60).toFixed(1) + '초';
   };
+  const fmtShort = (ms) => {
+    const sec = ms / 1000;
+    if (sec < 60) return sec.toFixed(1);
+    const m = Math.floor(sec / 60);
+    return m + ':' + String(Math.floor(sec - m * 60)).padStart(2, '0');
+  };
   const todayKey = () => {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -993,7 +1055,19 @@
   const loop = (t) => {
     if (!running) return;
     if (run) {                       // 시간 모드: 카운트다운이 아니라 경과 시간
-      scoreEl.textContent = (runElapsed() / 1000).toFixed(1);
+      const el = runElapsed();
+      scoreEl.textContent = (el / 1000).toFixed(1);
+      if (run.target) {
+        // 상대의 총 시간을 판 수로 고르게 나눈 '평균 속도'가 어디쯤인지 표시한다.
+        // 내 진행이 이 선보다 앞서 있으면 이기고 있는 것.
+        const exp = Math.min(1, el / run.target.ms);
+        ghost.style.left = (exp * 100) + '%';
+        if (run.i > 0) {
+          const mine = run.i / run.specs.length;
+          scoreEl.classList.toggle('ahead', mine > exp);
+          scoreEl.classList.toggle('behind', mine <= exp);
+        }
+      }
       rafId = requestAnimationFrame(loop);
       return;
     }
@@ -1053,7 +1127,7 @@
 
       if (run) {
         run.i++;
-        bestEl.textContent = run.i + '/' + run.specs.length;
+        if (!run.target) bestEl.textContent = run.i + '/' + run.specs.length;
         popAt(at.cx, at.cy, run.i + ' / ' + run.specs.length, 'good');
       } else {
         // 끝없이 모드: 콤보가 이어질수록 채워지는 시간이 조금씩 늘어난다
@@ -1098,7 +1172,8 @@
   };
 
   // ---------- 오버레이 상태 ----------
-  const OV_ALL = () => [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn, altBtn, maker, madeLink];
+  const OV_ALL = () => [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote,
+                        ovTarget, ovVerdict, shareBtn, altBtn, maker, madeLink];
   let startAction = () => {};
   let altAction = null;
 
@@ -1123,19 +1198,31 @@
       scoreEl.textContent = running ? score : 0;
       bestEl.textContent = best;
     } else {
-      scoreLabel.textContent = '시간'; bestLabel.textContent = '판';
+      scoreLabel.textContent = '시간';
       scoreEl.textContent = run ? (runElapsed() / 1000).toFixed(1) : '0.0';
-      bestEl.textContent = run ? (run.i + '/' + run.specs.length)
-        : (mode === 'daily' ? DAILY_N : CHALLENGE_N);
+      if (run && run.target) {
+        bestLabel.textContent = '목표';
+        bestEl.textContent = fmtShort(run.target.ms);
+        bestEl.classList.add('small');
+      } else {
+        bestLabel.textContent = '판';
+        bestEl.classList.remove('small');
+        bestEl.textContent = run ? (run.i + '/' + run.specs.length)
+          : (mode === 'daily' ? DAILY_N : CHALLENGE_N);
+      }
     }
   };
 
   // ---------- 시간 모드 실행 ----------
-  const startRun = (specs, kind, seed, diff) => {
+  const startRun = (specs, kind, seed, diff, target) => {
     sfx.warm();
     clearPending();
     rnd = mulberry32(seed >>> 0);
-    run = { specs, kind, seed, diff, i: 0, mistakes: 0, t0: performance.now(), frozen: 0, lockAt: 0 };
+    run = { specs, kind, seed, diff, target: target || null,
+            i: 0, mistakes: 0, t0: performance.now(), frozen: 0, lockAt: 0 };
+    ghost.classList.toggle('on', !!(run.target && run.target.ms));
+    ghost.style.left = '0%';
+    scoreEl.classList.remove('ahead', 'behind');
     running = true;
     level = 0; combo = 0; maxCombo = 0; lastN = 0;
     while (fx.firstChild) fx.removeChild(fx.firstChild);
@@ -1174,6 +1261,9 @@
     const n = run.specs.length;
     const tier = runTier(total / n / 1000);
     const kind = run.kind, diff = run.diff, seed = run.seed;
+    const target = run.target, miss = run.mistakes;
+    ghost.classList.remove('on');
+    scoreEl.classList.remove('ahead', 'behind');
 
     // 오늘의 도전은 그날의 첫 완주만 기록으로 남긴다
     let official = false;
@@ -1182,26 +1272,69 @@
       try { store.set('colorspot_daily', JSON.stringify({ d: todayKey(), ms: Math.round(total), m: run.mistakes })); } catch {}
     }
 
-    lastResult = { kind, diff, seed, total, mistakes: run.mistakes, n, tier, official };
     run = null;
-    paintHud();
 
     ovFinalLabel.textContent = '기록';
     ovScore.textContent = fmtMs(total);
-    ovTier.textContent = tier.emoji;
-    ovTitle.textContent = (official ? '오늘의 기록! · ' : '') + tier.title;
-    ovStat.textContent = n + '판 · 실수 ' + lastResult.mistakes + '회'
-      + (lastResult.mistakes ? ' (+' + (penalty / 1000) + '초)' : '')
-      + (kind === 'challenge' ? ' · ' + CHALLENGE[diff].label : '');
+    ovTitle.textContent = tier.emoji + ' ' + tier.title;
+    ovStat.textContent = n + '판 · 실수 ' + miss + '회'
+      + (miss ? ' (+' + (penalty / 1000) + '초)' : '')
+      + (diff >= 0 ? ' · ' + CHALLENGE[diff].label : '');
 
+    // 받은 도전장 — 이겼는지 졌는지가 결과의 전부다
+    if (kind === 'challenge' && target) {
+      const win = total < target.ms;
+      const gap = Math.abs(total - target.ms);
+      lastResult = { kind: 'challenge', diff, seed, total, mistakes: miss, tier, target };
+      paintHud();
+      ovVerdict.className = 'ov-verdict ' + (win ? 'win' : 'lose');
+      ovVerdict.textContent = gap < 100
+        ? (win ? '간발의 차이로 이겼습니다' : '간발의 차이로 졌습니다')
+        : (win ? fmtMs(gap) + ' 앞서 이겼습니다' : fmtMs(gap) + ' 차이로 졌습니다');
+      showOverlay({
+        big: win ? '승리!' : '아깝다',
+        show: [ovTitle, ovFinal, ovVerdict, ovStat, shareBtn],
+        start: '다시 도전',
+        onStart: () => startChallenge(seed, diff, target, 'challenge'),
+        alt: '되받아치기',
+        onAlt: () => startChallenge(newSeed(), diff, null, 'author')
+      });
+      shareBtn.textContent = '결과 복사';
+      return;
+    }
+
+    // 내가 낸 문제를 내가 푼 것 — 이 기록을 걸어 링크를 만든다
+    if (kind === 'author') {
+      lastResult = { kind: 'made', diff, seed, total, mistakes: miss };
+      paintHud();
+      madeLink.textContent = challengeUrl(seed, diff, total, miss);
+      showOverlay({
+        big: '도전장 완성',
+        sub: '내 기록 <b>' + fmtMs(total) + '</b>를 걸었습니다.<br>받은 사람은 <b>같은 판</b>으로 이 기록에 도전합니다.',
+        show: [ovFinal, ovStat, madeLink, shareBtn],
+        start: '이 판 다시 풀기',
+        onStart: () => startChallenge(seed, diff, null, 'author'),
+        alt: '난이도 바꿔 새로 만들기',
+        onAlt: openMaker
+      });
+      shareBtn.textContent = '도전장 보내기';
+      return;
+    }
+
+    // 오늘의 도전 / 연습
+    lastResult = { kind, diff, seed, total, mistakes: miss, tier, official };
+    paintHud();
+    ovTitle.textContent = (official ? '오늘의 기록! · ' : '') + tier.emoji + ' ' + tier.title;
+    ovStat.textContent = n + '판 · 실수 ' + miss + '회' + (miss ? ' (+' + (penalty / 1000) + '초)' : '');
     showOverlay({
       big: '완료!',
-      show: [ovTier, ovTitle, ovFinal, ovStat, shareBtn],
-      start: kind === 'daily' && !official ? '연습으로 다시' : '다시 하기',
-      onStart: () => (kind === 'daily' ? startDaily(true) : startChallenge(seed, diff)),
+      show: [ovTitle, ovFinal, ovStat, shareBtn],
+      start: kind === 'daily' ? '연습으로 다시' : '다시 하기',
+      onStart: () => startDaily(true),
       alt: '도전장 만들기',
       onAlt: openMaker
     });
+    shareBtn.textContent = '결과 복사';
   };
 
   const startDaily = (practice) => {
@@ -1211,10 +1344,10 @@
     startRun(specs, practice ? 'practice' : 'daily', seed, -1);
   };
 
-  const startChallenge = (seed, diff) => {
+  const startChallenge = (seed, diff, target, kind) => {
     const c = CHALLENGE[diff];
     const specs = Array.from({ length: CHALLENGE_N }, () => ({ n: c.n, delta: c.delta, noise: c.noise }));
-    startRun(specs, 'challenge', seed, diff);
+    startRun(specs, kind || 'challenge', seed, diff, target);
   };
 
   // ---------- 끝없이 모드 ----------
@@ -1241,14 +1374,13 @@
     lastResult = null;
     ovFinalLabel.textContent = '최종 점수';
     ovScore.textContent = score;
-    ovTier.textContent = tier.emoji;
-    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.title;
+    ovTitle.textContent = (isNewBest ? '🎉 최고 기록! · ' : '') + tier.emoji + ' ' + tier.title;
     ovPct.innerHTML = '상위 <b>' + pct + '%</b>';
     ovStat.textContent = '최고 콤보 ' + maxCombo + '연속 · 색 차이 ' + deltaFor(level).toFixed(1) + '%까지';
 
     showOverlay({
       big: '게임 오버!',
-      show: [ovTier, ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn],
+      show: [ovTitle, ovFinal, ovPct, ovStat, ovNote, shareBtn],
       start: '다시 하기',
       onStart: startEndless
     });
@@ -1274,8 +1406,13 @@
 
   // ---------- 도전장 만들기 ----------
   let makeDiff = 2;
-  const challengeUrl = (seed, diff) =>
-    location.origin + location.pathname + '?c=' + (seed >>> 0).toString(36) + '.' + diff;
+  // ?c=<시드36>.<난이도>[.<기록ms36>.<실수>]
+  // 기록이 없는 예전 링크도 그대로 열린다.
+  const challengeUrl = (seed, diff, ms, miss) => {
+    const base = location.origin + location.pathname + '?c=' + (seed >>> 0).toString(36) + '.' + diff;
+    return ms == null ? base : base + '.' + Math.round(ms).toString(36) + '.' + Math.min(miss, 99);
+  };
+  const newSeed = () => (Math.random() * 4294967296) >>> 0;
 
   const paintDiffs = () => {
     diffRow.innerHTML = CHALLENGE.map((c, i) =>
@@ -1287,27 +1424,16 @@
     paintDiffs();
   });
 
+  // 기록 없는 도전장은 그냥 문제일 뿐이라 겨룰 대상이 없다.
+  // 그래서 만드는 사람이 먼저 풀고, 그 기록을 걸어야 링크가 나온다.
   const openMaker = () => {
     paintDiffs();
     showOverlay({
       big: '도전장 만들기',
-      sub: '난이도를 고르면 링크가 만들어집니다.<br>받은 사람은 <b>똑같은 판</b>을 풀게 됩니다.',
+      sub: '난이도를 고르고 <b>먼저 직접 풉니다.</b><br>그 기록이 상대가 이겨야 할 목표가 됩니다.',
       show: [maker],
-      start: '만들기',
-      onStart: () => {
-        const seed = (Math.random() * 4294967296) >>> 0;
-        const url = challengeUrl(seed, makeDiff);
-        madeLink.textContent = url;
-        showOverlay({
-          big: '도전장 완성',
-          sub: '이 링크를 보내면 상대가 같은 판에 도전합니다.',
-          show: [madeLink, shareBtn],
-          start: '직접 풀어보기',
-          onStart: () => startChallenge(seed, makeDiff)
-        });
-        shareBtn.textContent = '링크 복사';
-        lastResult = { kind: 'made', seed, diff: makeDiff };
-      }
+      start: '풀어서 도전장 만들기',
+      onStart: () => startChallenge(newSeed(), makeDiff, null, 'author')
     });
   };
 
@@ -1339,13 +1465,25 @@
 
   const introChallenge = () => {
     if (pendingChallenge) {
-      const { seed, diff } = pendingChallenge;
-      showOverlay({
-        big: '도전장 도착',
-        sub: `누군가 보낸 <b>${CHALLENGE[diff].label}</b> 난이도 ${CHALLENGE_N}판입니다.<br>같은 판이니 시간으로 겨뤄보세요.`,
-        start: '시작', onStart: () => startChallenge(seed, diff),
-        alt: '나도 만들기', onAlt: openMaker
-      });
+      const { seed, diff, target } = pendingChallenge;
+      if (target) {
+        ovTarget.innerHTML = '이겨야 할 기록<b>' + fmtMs(target.ms) + '</b>';
+        showOverlay({
+          big: '도전장 도착',
+          sub: `<b>${CHALLENGE[diff].label}</b> 난이도 ${CHALLENGE_N}판 · 상대 실수 ${target.miss}회<br>`
+             + `상대와 <b>글자 그대로 같은 판</b>입니다.`,
+          show: [ovTarget],
+          start: '도전', onStart: () => startChallenge(seed, diff, target, 'challenge'),
+          alt: '내가 만들기', onAlt: openMaker
+        });
+      } else {
+        showOverlay({
+          big: '도전장 도착',
+          sub: `누군가 보낸 <b>${CHALLENGE[diff].label}</b> 난이도 ${CHALLENGE_N}판입니다.<br>같은 판이니 시간으로 겨뤄보세요.`,
+          start: '시작', onStart: () => startChallenge(seed, diff, null, 'challenge'),
+          alt: '나도 만들기', onAlt: openMaker
+        });
+      }
     } else {
       openMaker();
     }
@@ -1392,15 +1530,19 @@
   const shareResult = () => {
     const home = 'https://fusepuzzle.com/color-spot/';
     if (lastResult && lastResult.kind === 'made') {
-      copyOrShare('색 찾기 도전장 [' + CHALLENGE[lastResult.diff].label + '] — 같은 판으로 겨뤄봐요\n'
-        + challengeUrl(lastResult.seed, lastResult.diff));
+      const r = lastResult;
+      copyOrShare('색 찾기 도전장 [' + CHALLENGE[r.diff].label + '] ' + CHALLENGE_N + '판\n'
+        + '내 기록 ' + fmtMs(r.total) + ' — 이길 수 있나요?\n'
+        + challengeUrl(r.seed, r.diff, r.total, r.mistakes));
       return;
     }
     if (lastResult) {
       const r = lastResult;
       if (r.kind === 'challenge') {
-        copyOrShare('색 찾기 도전장 [' + CHALLENGE[r.diff].label + '] ' + fmtMs(r.total)
-          + ' · 실수 ' + r.mistakes + '회\n' + challengeUrl(r.seed, r.diff));
+        const win = r.target && r.total < r.target.ms;
+        copyOrShare('색 찾기 도전장 [' + CHALLENGE[r.diff].label + ']\n'
+          + (r.target ? (win ? '이겼다! ' : '졌다… ') : '') + fmtMs(r.total)
+          + (r.target ? ' (상대 ' + fmtMs(r.target.ms) + ')' : '') + '\n' + home);
       } else {
         copyOrShare('색 찾기 ' + (r.kind === 'daily' ? '오늘의 도전' : '연습') + ' ' + fmtMs(r.total)
           + ' · 실수 ' + r.mistakes + '회 ' + r.tier.emoji + ' ' + r.tier.title + '\n' + home);
@@ -1434,8 +1576,12 @@
   paintSoundBtn(sfx.isOn());
 
   // 도전장 링크로 들어왔으면 그 모드로 시작한다
-  const cm = /[?&]c=([0-9a-z]+)\.([0-4])(?:&|$)/i.exec(location.search);
-  if (cm) pendingChallenge = { seed: parseInt(cm[1], 36) >>> 0, diff: parseInt(cm[2], 10) };
+  const cm = /[?&]c=([0-9a-z]+)\.([0-4])(?:\.([0-9a-z]+)\.(\d{1,2}))?/i.exec(location.search);
+  if (cm) pendingChallenge = {
+    seed: parseInt(cm[1], 36) >>> 0,
+    diff: parseInt(cm[2], 10),
+    target: cm[3] ? { ms: parseInt(cm[3], 36), miss: parseInt(cm[4], 10) } : null
+  };
   setMode(pendingChallenge ? 'challenge' : 'endless');
 })();
 </script>
